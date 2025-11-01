@@ -1,0 +1,19 @@
+package com.homehero.homehero.repository;
+
+import com.homehero.homehero.model.Servico;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface ServicoRepository extends JpaRepository<Servico, Integer> {
+    
+    List<Servico> findByCategoriaId(Integer categoriaId);
+    
+    List<Servico> findByAtivoTrue();
+    
+    Optional<Servico> findByNome(String nome);
+}
+
