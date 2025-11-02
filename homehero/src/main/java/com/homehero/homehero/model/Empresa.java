@@ -32,22 +32,22 @@ public class Empresa {
     private String representanteResponsavel;
     
     @Column(name = "emp_senha", length = 60)
-    private String senha; // Será criptografada com BCrypt
+    private String senha;
     
     @ManyToOne
     @JoinColumn(name = "emp_endereco_id")
     private Endereco endereco;
     
-    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Email> emails;
     
-    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Telefone> telefones;
     
-    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AgendamentoServico> agendamentos;
     
-    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<FuncionarioEmpresa> funcionarios;
 }
 

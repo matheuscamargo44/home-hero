@@ -24,13 +24,13 @@ public class ChatMensagem {
     private AgendamentoServico agendamento;
     
     @Column(name = "cha_remetente_tipo", length = 20)
-    private String remetenteTipo; // Ex: Cliente, Prestador, Empresa, Suporte
+    private String remetenteTipo;
     
     @Column(name = "cha_remetente_id")
     private Integer remetenteId;
     
     @Column(name = "cha_destinatario_tipo", length = 20)
-    private String destinatarioTipo; // Ex: Cliente, Prestador, Empresa, Suporte
+    private String destinatarioTipo;
     
     @Column(name = "cha_destinatario_id")
     private Integer destinatarioId;

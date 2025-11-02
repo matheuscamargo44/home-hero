@@ -35,10 +35,10 @@ public class Servico {
     @JoinColumn(name = "ser_cat_id", nullable = false)
     private CategoriaServico categoria;
     
-    @OneToMany(mappedBy = "servico", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "servico", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PrestadorServico> prestadoresServicos;
     
-    @OneToMany(mappedBy = "servico", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "servico", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AgendamentoServico> agendamentos;
 }
 

@@ -25,7 +25,7 @@ public class CategoriaServico {
     @Column(name = "cat_descricao", length = 255)
     private String descricao;
     
-    @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Servico> servicos;
 }
 
