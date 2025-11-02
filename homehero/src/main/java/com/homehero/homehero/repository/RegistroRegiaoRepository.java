@@ -13,6 +13,8 @@ public interface RegistroRegiaoRepository extends JpaRepository<RegistroRegiao, 
     
     List<RegistroRegiao> findByPrestadorId(Integer prestadorId);
     
+    List<RegistroRegiao> findByEmpresaId(Integer empresaId);
+    
     List<RegistroRegiao> findByRegiaoId(Integer regiaoId);
 }
 

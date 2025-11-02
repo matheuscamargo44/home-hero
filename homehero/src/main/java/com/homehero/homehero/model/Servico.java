@@ -32,11 +32,14 @@ public class Servico {
     private Boolean ativo = true;
     
     @ManyToOne
-    @JoinColumn(name = "ser_cat_id", nullable = false)
+    @JoinColumn(name = "ser_cat_id")
     private CategoriaServico categoria;
     
     @OneToMany(mappedBy = "servico", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PrestadorServico> prestadoresServicos;
+    
+    @OneToMany(mappedBy = "servico", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<EmpresaServico> empresasServicos;
     
     @OneToMany(mappedBy = "servico", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AgendamentoServico> agendamentos;

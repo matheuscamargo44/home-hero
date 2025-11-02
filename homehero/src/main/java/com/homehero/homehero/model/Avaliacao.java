@@ -30,8 +30,12 @@ public class Avaliacao {
     private Cliente cliente;
     
     @ManyToOne
-    @JoinColumn(name = "ava_pre_id", nullable = false)
+    @JoinColumn(name = "ava_pre_id")
     private Prestador prestador;
+    
+    @ManyToOne
+    @JoinColumn(name = "ava_emp_id")
+    private Empresa empresa;
     
     @Column(name = "ava_nota")
     private Integer nota;

@@ -31,6 +31,10 @@ public class RegistroRegiao {
     @JoinColumn(name = "rre_pre_id")
     private Prestador prestador;
     
+    @ManyToOne
+    @JoinColumn(name = "rre_emp_id")
+    private Empresa empresa;
+    
     @Column(name = "rre_data_registro")
     private LocalDate dataRegistro;
 }

@@ -49,5 +49,17 @@ public class Empresa {
     
     @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<FuncionarioEmpresa> funcionarios;
+    
+    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<RegistroRegiao> registrosRegiao;
+    
+    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<EmpresaServico> empresasServicos;
+    
+    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Avaliacao> avaliacoes;
+    
+    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Notificacao> notificacoes;
 }
 

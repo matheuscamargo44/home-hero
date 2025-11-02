@@ -28,6 +28,10 @@ public class Notificacao {
     private Prestador prestador;
     
     @ManyToOne
+    @JoinColumn(name = "not_emp_id")
+    private Empresa empresa;
+    
+    @ManyToOne
     @JoinColumn(name = "not_age_id")
     private AgendamentoServico agendamento;
     

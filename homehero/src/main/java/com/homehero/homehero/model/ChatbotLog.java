@@ -28,6 +28,10 @@ public class ChatbotLog {
     private Prestador prestador;
     
     @ManyToOne
+    @JoinColumn(name = "cbt_emp_id")
+    private Empresa empresa;
+    
+    @ManyToOne
     @JoinColumn(name = "cbt_age_id")
     private AgendamentoServico agendamento;
     
