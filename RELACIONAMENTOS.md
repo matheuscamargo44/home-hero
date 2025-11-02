@@ -1,8 +1,8 @@
-# 📊 Documentação de Relacionamentos - HomeHero
+# Documentação de Relacionamentos - HomeHero
 
 Este documento descreve todos os relacionamentos entre as entidades do sistema HomeHero e explica o motivo de cada relacionamento.
 
-## 📖 Índice
+## Índice
 
 1. [Entidades de Usuário](#1-entidades-de-usuário)
 2. [Entidades de Localização](#2-entidades-de-localização)
@@ -601,7 +601,7 @@ Este documento descreve todos os relacionamentos entre as entidades do sistema H
 
 ---
 
-## 🔑 Padrões e Convenções
+## Padrões e Convenções
 
 ### Relacionamentos Mutuamente Exclusivos
 
@@ -623,7 +623,7 @@ A maioria dos relacionamentos utiliza `CascadeType.ALL`, permitindo que operaç�
 
 ---
 
-## 📝 Resumo de Relacionamentos por Cardinalidade
+## Resumo de Relacionamentos por Cardinalidade
 
 | Cardinalidade | Exemplos |
 |---------------|----------|
