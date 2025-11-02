@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "agendamento_servico")
@@ -41,14 +42,14 @@ public class AgendamentoServico {
     private LocalDate data;
     
     @Column(name = "age_janela", length = 20)
-    private String janela; // Ex: Manhã, Tarde, Noite, 08:00-12:00
+    private String janela;
     
     @ManyToOne
     @JoinColumn(name = "age_end_id")
     private Endereco endereco;
     
     @Column(name = "age_status", length = 20)
-    private String status; // Ex: Pendente, Confirmado, Em Andamento, Concluído, Cancelado
+    private String status;
     
     @Column(name = "age_valor")
     private Float valor;
@@ -62,19 +63,19 @@ public class AgendamentoServico {
     @Column(name = "age_motivo_cancelamento", length = 120)
     private String motivoCancelamento;
     
-    @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL)
-    private java.util.List<HistoricoStatusAgendamento> historicosStatus;
+    @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<HistoricoStatusAgendamento> historicosStatus;
     
-    @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL)
-    private java.util.List<AtribuicaoServico> atribuicoes;
+    @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<AtribuicaoServico> atribuicoes;
     
-    @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL)
-    private java.util.List<Pagamento> pagamentos;
+    @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Pagamento> pagamentos;
     
-    @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL)
-    private java.util.List<DisputaReembolso> disputas;
+    @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<DisputaReembolso> disputas;
     
-    @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL)
-    private java.util.List<Avaliacao> avaliacoes;
+    @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Avaliacao> avaliacoes;
 }
 

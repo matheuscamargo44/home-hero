@@ -34,7 +34,7 @@ public class Avaliacao {
     private Prestador prestador;
     
     @Column(name = "ava_nota")
-    private Integer nota; // 1 a 5
+    private Integer nota;
     
     @Column(name = "ava_comentario", length = 400)
     private String comentario;

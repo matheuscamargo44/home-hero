@@ -39,40 +39,40 @@ public class Prestador {
     private String certificados;
     
     @Column(name = "pre_senha", length = 60)
-    private String senha; // Será criptografada com BCrypt
+    private String senha;
     
     @ManyToOne
     @JoinColumn(name = "pre_endereco_id")
     private Endereco endereco;
     
-    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Email> emails;
     
-    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Telefone> telefones;
     
-    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AgendamentoServico> agendamentos;
     
-    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RegistroRegiao> registrosRegiao;
     
-    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PrestadorServico> prestadoresServicos;
     
-    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<CertificacaoPrestador> certificacoes;
     
-    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DisponibilidadePrestador> disponibilidades;
     
-    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Avaliacao> avaliacoes;
     
-    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Notificacao> notificacoes;
     
-    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DisputaReembolso> disputas;
 }
 

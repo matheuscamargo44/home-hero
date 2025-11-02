@@ -50,7 +50,6 @@ public class AgendamentoServicoRepositoryCustomImpl implements AgendamentoServic
         
         query.executeUpdate();
         
-        // Buscar o último ID inserido
         Query lastIdQuery = entityManager.createNativeQuery(
             "SELECT LAST_INSERT_ID()"
         );
