@@ -1,0 +1,14 @@
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\config\AdminInitializer.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\controller\AdminController.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\controller\AuthController.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\controller\ClienteController.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\controller\DatabaseTestController.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\controller\ServicoController.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\HomeheroApplication.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\model\Admin.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\model\Cliente.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\model\Servico.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\repository\AdminRepository.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\repository\ClienteRepository.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\repository\ServicoRepository.java
+C:\Users\camargo\Documents\GitHub\home-hero\backend\src\main\java\com\homehero\service\DatabaseTestService.java

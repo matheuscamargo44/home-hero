@@ -1,0 +1,19 @@
+
+> homehero-landing@1.0.0 start
+> ng serve
+
+- Building...
+
+Initial chunk files   | Names         |  Raw size
+main-L7X4HFJR.js      | main          | 188.34 kB | 
+polyfills-TW7W7OZB.js | polyfills     |  88.09 kB | 
+styles-TTOHEUCU.css   | styles        |  27.84 kB | 
+
+                      | Initial total | 304.28 kB
+
+Application bundle generation complete. [2.154 seconds]
+
+Watch mode enabled. Watching for file changes...
+  ➜  Local:   http://localhost:4200/
+  ➜  press h + enter to show help
+^C^C
