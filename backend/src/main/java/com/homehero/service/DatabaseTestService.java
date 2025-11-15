@@ -3,11 +3,19 @@ package com.homehero.service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import org.hibernate.Session;
+import org.hibernate.jdbc.ReturningWork;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,40 +65,141 @@ public class DatabaseTestService {
         return mapList;
     }
 
-    @Transactional
+    // Usa NOT_SUPPORTED para suspender qualquer transação existente
+    // Procedures do MySQL gerenciam suas próprias transações
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public Map<String, Object> executeProcedure(String procedureName, Map<String, Object> parameters) {
+        Map<String, Object> response = new HashMap<>();
         try {
-            StringBuilder sql = new StringBuilder("CALL ").append(procedureName).append("(");
-            
-            if (parameters != null && !parameters.isEmpty()) {
-                List<String> paramPlaceholders = new ArrayList<>();
-                for (int i = 0; i < parameters.size(); i++) {
-                    paramPlaceholders.add("?");
+            // Obter conexão JDBC através do Hibernate Session
+            Session session = entityManager.unwrap(Session.class);
+            return session.doReturningWork(new ReturningWork<Map<String, Object>>() {
+                @Override
+                public Map<String, Object> execute(Connection connection) {
+                    CallableStatement callableStatement = null;
+                    try {
+                        // Construir a chamada da procedure
+                        LinkedHashMap<String, Object> orderedParams = new LinkedHashMap<>();
+                        if (parameters != null && !parameters.isEmpty()) {
+                            orderedParams.putAll(parameters);
+                        }
+                        
+                        StringBuilder sql = new StringBuilder("CALL ").append(procedureName).append("(");
+                        if (!orderedParams.isEmpty()) {
+                            for (int i = 0; i < orderedParams.size(); i++) {
+                                if (i > 0) sql.append(", ");
+                                sql.append("?");
+                            }
+                        }
+                        sql.append(")");
+                        
+                        callableStatement = connection.prepareCall(sql.toString());
+                        
+                        // Definir parâmetros
+                        int paramIndex = 1;
+                        for (Map.Entry<String, Object> entry : orderedParams.entrySet()) {
+                            Object value = entry.getValue();
+                            if (value instanceof Integer) {
+                                callableStatement.setInt(paramIndex, (Integer) value);
+                            } else if (value instanceof Long) {
+                                callableStatement.setLong(paramIndex, (Long) value);
+                            } else if (value instanceof Double || value instanceof Float) {
+                                callableStatement.setDouble(paramIndex, value instanceof Double ? (Double) value : ((Float) value).doubleValue());
+                            } else if (value instanceof String) {
+                                callableStatement.setString(paramIndex, (String) value);
+                            } else if (value instanceof java.sql.Date) {
+                                callableStatement.setDate(paramIndex, (java.sql.Date) value);
+                            } else if (value instanceof java.util.Date) {
+                                callableStatement.setDate(paramIndex, new java.sql.Date(((java.util.Date) value).getTime()));
+                            } else {
+                                callableStatement.setObject(paramIndex, value);
+                            }
+                            paramIndex++;
+                        }
+                        
+                        // Executar e obter resultados
+                        boolean hasResults = callableStatement.execute();
+                        List<Map<String, Object>> resultData = new ArrayList<>();
+                        boolean returnedData = false;
+                        
+                        while (true) {
+                            if (hasResults) {
+                                ResultSet rs = callableStatement.getResultSet();
+                                if (rs != null) {
+                                    // Obter nomes das colunas dos metadados
+                                    ResultSetMetaData metaData = rs.getMetaData();
+                                    int columnCount = metaData.getColumnCount();
+                                    List<String> columnNames = new ArrayList<>();
+                                    for (int i = 1; i <= columnCount; i++) {
+                                        String columnLabel = metaData.getColumnLabel(i);
+                                        if (columnLabel == null || columnLabel.isBlank() ||
+                                                columnLabel.toLowerCase().matches("column\\d+")) {
+                                            String fallbackName = metaData.getColumnName(i);
+                                            if (fallbackName != null && !fallbackName.isBlank()) {
+                                                columnLabel = fallbackName;
+                                            }
+                                        }
+                                        if (columnLabel == null || columnLabel.isBlank()) {
+                                            columnLabel = "column" + i;
+                                        }
+                                        columnNames.add(columnLabel);
+                                    }
+                                    
+                                    // Converter resultados usando os nomes reais das colunas
+                                    while (rs.next()) {
+                                        Map<String, Object> row = new HashMap<>();
+                                        for (int i = 1; i <= columnCount; i++) {
+                                            row.put(columnNames.get(i - 1), rs.getObject(i));
+                                        }
+                                        resultData.add(row);
+                                    }
+                                    rs.close();
+                                    returnedData = true;
+                                }
+                            } else {
+                                int updateCount = callableStatement.getUpdateCount();
+                                if (updateCount == -1) {
+                                    break;
+                                }
+                            }
+                            
+                            hasResults = callableStatement.getMoreResults();
+                            if (!hasResults && callableStatement.getUpdateCount() == -1) {
+                                break;
+                            }
+                        }
+                        
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("success", true);
+                        result.put("data", resultData);
+                        if (!returnedData) {
+                            result.put("message", "Procedimento executado com sucesso (sem retorno de dados).");
+                        }
+                        return result;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Map<String, Object> errorResult = new HashMap<>();
+                        errorResult.put("success", false);
+                        String errorMessage = extractErrorMessage(e);
+                        errorResult.put("message", "Erro ao executar procedure: " + errorMessage);
+                        errorResult.put("data", new ArrayList<>());
+                        return errorResult;
+                    } finally {
+                        try {
+                            if (callableStatement != null) {
+                                callableStatement.close();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
-                sql.append(String.join(", ", paramPlaceholders));
-            }
-            sql.append(")");
-
-            Query query = entityManager.createNativeQuery(sql.toString());
-            
-            if (parameters != null && !parameters.isEmpty()) {
-                int index = 1;
-                for (Object value : parameters.values()) {
-                    query.setParameter(index++, value);
-                }
-            }
-
-            @SuppressWarnings("unchecked")
-            List<Object[]> results = query.getResultList();
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", convertToMapList(results));
-            return response;
+            });
         } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
+            e.printStackTrace();
             response.put("success", false);
-            response.put("message", "Erro ao executar procedure: " + e.getMessage());
+            String errorMessage = extractErrorMessage(e);
+            response.put("message", "Erro ao executar procedure: " + errorMessage);
             response.put("data", new ArrayList<>());
             return response;
         }
@@ -190,6 +299,20 @@ public class DatabaseTestService {
             mapList.add(map);
         }
         return mapList;
+    }
+
+    private String extractErrorMessage(Exception e) {
+        String errorMessage = e.getMessage();
+        if (e.getCause() != null && e.getCause().getMessage() != null) {
+            errorMessage = e.getCause().getMessage();
+        }
+        if (errorMessage == null || errorMessage.isBlank()) {
+            return "Erro desconhecido ao executar procedure.";
+        }
+        if (errorMessage.contains("rollback-only") || errorMessage.contains("Transaction")) {
+            return "Erro ao executar procedure. Verifique os parâmetros fornecidos e se a procedure existe no banco de dados.";
+        }
+        return errorMessage;
     }
 
     @Transactional

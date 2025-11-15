@@ -141,8 +141,8 @@ import { AuthService } from '../../services/auth.service';
                 <p class="text-sm text-slate-400 dark:text-slate-500" *ngIf="viewResults.message">{{ viewResults.message }}</p>
               </div>
             </div>
-            <div *ngIf="viewResults && !viewResults.success" class="mt-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p class="text-red-800 dark:text-red-300">{{ viewResults.message || 'Erro ao executar visualização' }}</p>
+            <div *ngIf="viewResults && !viewResults.success" class="mt-8 p-4 bg-slate-50 dark:bg-primary-900 border border-slate-200 dark:border-primary-800 rounded-lg">
+              <p class="text-slate-800 dark:text-slate-300">{{ viewResults.message || 'Erro ao executar visualização' }}</p>
             </div>
           </div>
 
@@ -188,11 +188,11 @@ import { AuthService } from '../../services/auth.service';
                   Limpar Resultados
                 </button>
               </div>
-              <div *ngIf="procedureResult.success === true" class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
-                <p class="text-green-800 dark:text-green-300 font-semibold">Procedimento executado com sucesso!</p>
+              <div *ngIf="procedureResult.success === true" class="bg-slate-50 dark:bg-primary-900 border border-slate-200 dark:border-primary-800 rounded-lg p-4 mb-4">
+                <p class="text-slate-800 dark:text-slate-300 font-semibold">Procedimento executado com sucesso!</p>
               </div>
-              <div *ngIf="procedureResult.success === false" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-                <p class="text-red-800 dark:text-red-300">{{ procedureResult.message || 'Erro ao executar procedimento' }}</p>
+              <div *ngIf="procedureResult.success === false" class="bg-slate-50 dark:bg-primary-900 border border-slate-200 dark:border-primary-800 rounded-lg p-4 mb-4">
+                <p class="text-slate-800 dark:text-slate-300">{{ procedureResult.message || 'Erro ao executar procedimento' }}</p>
               </div>
               <div *ngIf="procedureResult.data && procedureResult.data.length > 0" class="mb-4">
                 <p class="text-sm text-slate-600 dark:text-slate-400 mb-4 font-semibold">Resultados ({{ procedureResult.data.length }} registros):</p>
@@ -272,11 +272,11 @@ import { AuthService } from '../../services/auth.service';
                   Limpar Resultados
                 </button>
               </div>
-              <div *ngIf="triggerResult.success === true" class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
-                <p class="text-green-800 dark:text-green-300 font-semibold">{{ triggerResult.message }}</p>
+              <div *ngIf="triggerResult.success === true" class="bg-slate-50 dark:bg-primary-900 border border-slate-200 dark:border-primary-800 rounded-lg p-4 mb-4">
+                <p class="text-slate-800 dark:text-slate-300 font-semibold">{{ triggerResult.message }}</p>
               </div>
-              <div *ngIf="triggerResult.success === false" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-                <p class="text-red-800 dark:text-red-300">{{ triggerResult.message || 'Erro ao executar trigger' }}</p>
+              <div *ngIf="triggerResult.success === false" class="bg-slate-50 dark:bg-primary-900 border border-slate-200 dark:border-primary-800 rounded-lg p-4 mb-4">
+                <p class="text-slate-800 dark:text-slate-300">{{ triggerResult.message || 'Erro ao executar trigger' }}</p>
               </div>
               
               <div *ngIf="triggerResult.historicoStatus && triggerResult.historicoStatus.length > 0" class="mb-4">
@@ -358,8 +358,8 @@ import { AuthService } from '../../services/auth.service';
                   </div>
                 </div>
               </div>
-              <div *ngIf="!triggerInfo.success" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                <p class="text-red-800 dark:text-red-300">{{ triggerInfo.message || 'Erro ao obter informações do gatilho' }}</p>
+              <div *ngIf="!triggerInfo.success" class="bg-slate-50 dark:bg-primary-900 border border-slate-200 dark:border-primary-800 rounded-lg p-4">
+                <p class="text-slate-800 dark:text-slate-300">{{ triggerInfo.message || 'Erro ao obter informações do gatilho' }}</p>
               </div>
             </div>
           </div>
@@ -755,6 +755,57 @@ export class DatabaseTestComponent implements OnInit {
   }
 
   formatColumnName(key: string): string {
+    const normalizedKey = key.toLowerCase();
+    
+    // Primeiro, verificar IDs específicos ANTES de qualquer processamento
+    const specificIdLabels: { [key: string]: string } = {
+      'age_id': 'ID do Agendamento',
+      'agendamento_id': 'ID do Agendamento',
+      'agendamento_servico_id': 'ID do Agendamento',
+      'cli_id': 'ID do Cliente',
+      'cliente_id': 'ID do Cliente',
+      'clienteid': 'ID do Cliente',
+      'pre_id': 'ID do Prestador',
+      'prestador_id': 'ID do Prestador',
+      'prestadorid': 'ID do Prestador',
+      'ser_id': 'ID do Serviço',
+      'servico_id': 'ID do Serviço',
+      'servicoid': 'ID do Serviço',
+      'end_id': 'ID do Endereço',
+      'endereco_id': 'ID do Endereço',
+      'pag_id': 'ID do Pagamento',
+      'pagamento_id': 'ID do Pagamento',
+      'pagamentoid': 'ID do Pagamento',
+      'dsp_id': 'ID da Disputa',
+      'disputa_id': 'ID da Disputa',
+      'ava_id': 'ID da Avaliação',
+      'avaliacao_id': 'ID da Avaliação',
+      'not_id': 'ID da Notificação',
+      'notificacao_id': 'ID da Notificação',
+      'cat_id': 'ID da Categoria',
+      'categoria_id': 'ID da Categoria',
+      'reg_id': 'ID da Região',
+      'regiao_id': 'ID da Região'
+    };
+    
+    if (specificIdLabels[normalizedKey]) {
+      return specificIdLabels[normalizedKey];
+    }
+    
+    // Verificar se termina com _id (fallback genérico)
+    if (normalizedKey.endsWith('_id')) {
+      const entity = normalizedKey.replace(/_id$/, '').replace(/_/g, ' ').trim();
+      if (entity) {
+        const entityLabel = entity
+          .split(/\s+/)
+          .map(word => word ? word.charAt(0).toUpperCase() + word.slice(1) : '')
+          .join(' ')
+          .trim();
+        return `ID de ${entityLabel}`;
+      }
+    }
+    
+    // Processar outras colunas (remover prefixos e formatar)
     let formatted = key
       .replace(/^(cli_|pre_|ser_|age_|ava_|pag_|dsp_|not_|cat_|end_|reg_|dis_|cer_|prs_|rre_|his_|his_)/i, '')
       .replace(/_/g, ' ');
@@ -897,34 +948,43 @@ export class DatabaseTestComponent implements OnInit {
       'oferecidos': 'Oferecidos',
       'status': 'Status',
       'pos': 'Pós',
-      'inserir': 'inserir',
-      'atualizar': 'atualizar',
-      'registrar': 'registrar',
-      'mudanca': 'mudança',
-      'criar': 'criar',
-      'notificacao': 'notificação',
-      'notificar': 'notificar',
-      'inicial': 'inicial',
-      'confirmado': 'confirmado'
+      'inserir': 'Inserir',
+      'atualizar': 'Atualizar',
+      'registrar': 'Registrar',
+      'mudanca': 'Mudança',
+      'criar': 'Criar',
+      'notificacao': 'Notificação',
+      'notificar': 'Notificar',
+      'inicial': 'Inicial',
+      'confirmado': 'Confirmado'
     };
     
     const lowercaseWords = ['de', 'da', 'do', 'das', 'dos', 'por', 'para', 'com', 'sem', 'em', 'a', 'o', 'e'];
     
     const words = formatted.toLowerCase().split(/\s+/);
     const processedWords = words.map((word, index) => {
+      // Primeira palavra sempre capitalizada
       if (index === 0) {
-        return translations[word] || (word.charAt(0).toUpperCase() + word.slice(1));
+        if (translations[word]) {
+          const translated = translations[word];
+          return translated.charAt(0).toUpperCase() + translated.slice(1);
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1);
       }
       
+      // Palavras de ligação permanecem em minúsculo
       if (lowercaseWords.includes(word)) {
         return word;
       }
       
+      // Outras palavras: usar tradução se existir, senão capitalizar
       if (translations[word]) {
-        return translations[word].charAt(0).toLowerCase() + translations[word].slice(1);
+        const translated = translations[word];
+        return translated.charAt(0).toUpperCase() + translated.slice(1);
       }
       
-      return word;
+      // Capitalizar primeira letra de qualquer palavra
+      return word.charAt(0).toUpperCase() + word.slice(1);
     });
     
     return processedWords.join(' ').trim();
