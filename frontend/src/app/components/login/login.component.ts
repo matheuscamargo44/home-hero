@@ -199,7 +199,7 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         if (err.status === 0) {
-          this.errorMessage = 'Erro ao conectar com o servidor. Verifique se o backend está rodando em http://localhost:8080';
+          this.errorMessage = 'Erro ao conectar com o servidor. Verifique se o backend está rodando.';
         } else if (err.status === 401) {
           this.errorMessage = err.error?.message || 'Email/CPF ou senha incorretos';
         } else {

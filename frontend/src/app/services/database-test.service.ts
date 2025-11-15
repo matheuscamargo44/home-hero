@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DatabaseTestService {
-  private apiUrl = 'http://localhost:8080/api/database-test';
+  private apiUrl = `${environment.apiUrl}/database-test`;
 
   constructor(private http: HttpClient) {}
 

@@ -151,7 +151,7 @@ export class AdminLoginComponent {
         },
         error: (err) => {
           if (err.status === 0) {
-            this.error = 'Erro ao conectar com o servidor. Verifique se o backend está rodando em http://localhost:8080';
+            this.error = 'Erro ao conectar com o servidor. Verifique se o backend está rodando.';
           } else if (err.status === 404) {
             this.error = 'Endpoint não encontrado. O backend pode estar ainda iniciando. Aguarde alguns segundos e tente novamente.';
           } else if (err.status === 401) {
