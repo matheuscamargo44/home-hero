@@ -13,6 +13,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Controller responsável pela autenticação unificada do sistema
+ * Permite login tanto para administradores (por email) quanto para clientes (por CPF)
+ */
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
@@ -24,12 +28,20 @@ public class AuthController {
     @Autowired
     private ClienteRepository clienteRepository;
 
+    /**
+     * Endpoint de login unificado
+     * Aceita email (para admin) ou CPF (para cliente) no campo 'identifier'
+     * 
+     * @param credentials Mapa contendo 'identifier' (email ou CPF) e 'senha'
+     * @return ResponseEntity com dados do usuário autenticado ou mensagem de erro
+     */
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
         try {
             String identifier = credentials.get("identifier");
             String senha = credentials.get("senha");
 
+            // Validação dos campos obrigatórios
             if (identifier == null || senha == null) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", false);
@@ -57,6 +69,7 @@ public class AuthController {
             }
 
             // Se não é admin, tenta verificar se é cliente (por CPF)
+            // Remove caracteres não numéricos do CPF
             String cpfLimpo = identifier.replaceAll("[^0-9]", "");
             if (cpfLimpo.length() == 11) {
                 Optional<Cliente> clienteOpt = clienteRepository.findByCpf(cpfLimpo);

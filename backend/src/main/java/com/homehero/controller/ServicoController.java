@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Controller responsável pelas operações relacionadas a serviços
+ */
 @RestController
 @RequestMapping("/api/servicos")
 @CrossOrigin(origins = "*")
@@ -18,6 +21,11 @@ public class ServicoController {
     @Autowired
     private ServicoRepository servicoRepository;
 
+    /**
+     * Endpoint para listar todos os serviços ativos
+     * 
+     * @return ResponseEntity com lista de serviços ativos
+     */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAll() {
         try {
@@ -34,6 +42,7 @@ public class ServicoController {
         }
     }
 }
+
 
 
 

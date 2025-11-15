@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Controller responsável pelas operações relacionadas a clientes
+ */
 @RestController
 @RequestMapping("/api/clientes")
 @CrossOrigin(origins = "*")
@@ -19,9 +22,17 @@ public class ClienteController {
     @Autowired
     private ClienteRepository clienteRepository;
 
+    /**
+     * Endpoint para buscar um cliente pelo CPF
+     * Remove caracteres não numéricos do CPF antes de buscar
+     * 
+     * @param cpf CPF do cliente (pode conter pontos e traços)
+     * @return ResponseEntity com dados do cliente ou mensagem de erro
+     */
     @GetMapping("/cpf/{cpf}")
     public ResponseEntity<Map<String, Object>> getByCpf(@PathVariable String cpf) {
         try {
+            // Remove caracteres não numéricos do CPF
             String cpfLimpo = cpf.replaceAll("[^0-9]", "");
             
             Optional<Cliente> clienteOpt = clienteRepository.findByCpf(cpfLimpo);

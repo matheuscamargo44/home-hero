@@ -8,6 +8,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Controller responsável por testes e consultas ao banco de dados
+ * Permite testar views, procedures e triggers do MySQL
+ */
 @RestController
 @RequestMapping("/api/database-test")
 @CrossOrigin(origins = "*")
@@ -16,6 +20,10 @@ public class DatabaseTestController {
     @Autowired
     private DatabaseTestService databaseTestService;
 
+    /**
+     * Lista todas as views disponíveis no banco de dados
+     * @return Lista de nomes das views
+     */
     @GetMapping("/views")
     public ResponseEntity<Map<String, Object>> getViews() {
         try {
@@ -32,6 +40,10 @@ public class DatabaseTestController {
         }
     }
 
+    /**
+     * Lista todas as stored procedures disponíveis no banco de dados
+     * @return Lista de nomes das procedures
+     */
     @GetMapping("/procedures")
     public ResponseEntity<Map<String, Object>> getProcedures() {
         try {
@@ -48,6 +60,10 @@ public class DatabaseTestController {
         }
     }
 
+    /**
+     * Lista todos os triggers disponíveis no banco de dados
+     * @return Lista de nomes dos triggers
+     */
     @GetMapping("/triggers")
     public ResponseEntity<Map<String, Object>> getTriggers() {
         try {
@@ -64,6 +80,11 @@ public class DatabaseTestController {
         }
     }
 
+    /**
+     * Executa uma view e retorna os resultados
+     * @param viewName Nome da view a ser executada
+     * @return Resultados da view executada
+     */
     @PostMapping("/view/{viewName}")
     public ResponseEntity<Map<String, Object>> testView(@PathVariable String viewName) {
         try {
@@ -85,6 +106,12 @@ public class DatabaseTestController {
         }
     }
 
+    /**
+     * Executa uma stored procedure com parâmetros opcionais
+     * @param procedureName Nome da procedure a ser executada
+     * @param parameters Parâmetros para a procedure (opcional)
+     * @return Resultados da procedure executada
+     */
     @PostMapping("/procedure/{procedureName}")
     public ResponseEntity<Map<String, Object>> testProcedure(
             @PathVariable String procedureName,
@@ -103,11 +130,22 @@ public class DatabaseTestController {
         }
     }
 
+    /**
+     * Obtém informações detalhadas sobre um trigger
+     * @param triggerName Nome do trigger
+     * @return Informações do trigger (evento, tabela, ação, etc)
+     */
     @GetMapping("/trigger/{triggerName}")
     public ResponseEntity<Map<String, Object>> getTriggerInfo(@PathVariable String triggerName) {
         return ResponseEntity.ok(databaseTestService.getTriggerInfo(triggerName));
     }
 
+    /**
+     * Testa um trigger de uma tabela específica
+     * @param tableName Nome da tabela
+     * @param operation Operação a ser testada (SELECT, INSERT, UPDATE, DELETE)
+     * @return Resultado do teste do trigger
+     */
     @PostMapping("/trigger/{tableName}")
     public ResponseEntity<Map<String, Object>> testTrigger(
             @PathVariable String tableName,
@@ -115,6 +153,12 @@ public class DatabaseTestController {
         return ResponseEntity.ok(databaseTestService.testTrigger(tableName, operation));
     }
 
+    /**
+     * Executa uma ação específica de um trigger
+     * @param triggerName Nome do trigger
+     * @param params Parâmetros para a execução (opcional)
+     * @return Resultado da execução do trigger
+     */
     @PostMapping("/trigger/{triggerName}/execute")
     public ResponseEntity<Map<String, Object>> executeTriggerAction(
             @PathVariable String triggerName,

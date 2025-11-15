@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Controller responsável pelas operações relacionadas a administradores
+ */
 @RestController
 @RequestMapping("/api/admin")
 @CrossOrigin(origins = "*")
@@ -19,6 +22,12 @@ public class AdminController {
     @Autowired
     private AdminRepository adminRepository;
 
+    /**
+     * Endpoint para login de administrador
+     * 
+     * @param credentials Mapa contendo 'email' e 'senha'
+     * @return ResponseEntity com dados do admin autenticado ou mensagem de erro
+     */
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
         try {
@@ -47,6 +56,12 @@ public class AdminController {
         }
     }
 
+    /**
+     * Endpoint para criar o administrador padrão do sistema
+     * Cria o admin apenas se ainda não existir
+     * 
+     * @return ResponseEntity informando se o admin foi criado ou já existia
+     */
     @PostMapping("/create-default")
     public ResponseEntity<Map<String, Object>> createDefaultAdmin() {
         try {
@@ -75,6 +90,12 @@ public class AdminController {
         }
     }
 
+    /**
+     * Endpoint para verificar se um token pertence a um administrador
+     * 
+     * @param token Token de autorização do header
+     * @return ResponseEntity indicando se o token é válido e pertence a um admin
+     */
     @PostMapping("/verify")
     public ResponseEntity<Map<String, Object>> verifyAdmin(@RequestHeader(value = "Authorization", required = false) String token) {
         Map<String, Object> response = new HashMap<>();
@@ -90,6 +111,7 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 }
+
 
 
 

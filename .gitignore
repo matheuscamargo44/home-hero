@@ -1,0 +1,35 @@
+# Arquivos compilados
+backend/target/
+frontend/dist/
+frontend/.angular/
+
+# Logs
+*.log
+backend/*.log
+frontend/*.log
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos temporários
+*.tmp
+*.temp
+
