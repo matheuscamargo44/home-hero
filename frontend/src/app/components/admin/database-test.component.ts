@@ -372,12 +372,12 @@ import { AuthService } from '../../services/auth.service';
               
               <div class="space-y-4">
                 <div *ngFor="let param of procedureParams">
-                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{{ param }}</label>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{{ getParamDisplayName(param) }}</label>
                   <input
                     type="text"
                     [(ngModel)]="procedureParamValues[param]"
                     class="w-full px-4 py-2 border border-slate-300 dark:border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-dark-input text-slate-900 dark:text-white"
-                    [placeholder]="'Valor para ' + param"
+                    [placeholder]="getParamPlaceholder(param)"
                   />
                 </div>
               </div>
@@ -522,6 +522,82 @@ export class DatabaseTestComponent implements OnInit {
     this.showProcedureModal = true;
   }
 
+  // Mapeia os nomes técnicos dos parâmetros para descrições amigáveis em português
+  getParamDisplayName(param: string): string {
+    const paramNames: { [key: string]: string } = {
+      'p_nome': 'Nome Completo',
+      'p_cpf': 'CPF',
+      'p_nasc': 'Data de Nascimento',
+      'p_senha': 'Senha',
+      'p_end_id': 'ID do Endereço',
+      'p_email': 'E-mail',
+      'p_telefone': 'Telefone',
+      'p_cli_id': 'ID do Cliente',
+      'p_ser_id': 'ID do Serviço',
+      'p_pre_id': 'ID do Prestador',
+      'p_data': 'Data',
+      'p_periodo': 'Período',
+      'p_status_inicial': 'Status Inicial',
+      'p_valor': 'Valor',
+      'p_age_id': 'ID do Agendamento',
+      'p_motivo': 'Motivo',
+      'p_nota': 'Nota (1 a 5)',
+      'p_coment': 'Comentário',
+      'p_areas': 'Áreas de Atuação',
+      'p_data_inicio': 'Data de Início',
+      'p_data_fim': 'Data de Fim',
+      'p_ini': 'Data de Início',
+      'p_fim': 'Data de Fim',
+      'p_status': 'Status',
+      'p_dsp_id': 'ID da Disputa',
+      'p_forma': 'Forma de Pagamento',
+      'p_valor_total': 'Valor Total',
+      'p_exp': 'Experiência',
+      'p_certs': 'Certificados',
+      'p_ref': 'Referência do Gateway'
+    };
+    
+    return paramNames[param.toLowerCase()] || param;
+  }
+
+  // Retorna um placeholder amigável para cada parâmetro
+  getParamPlaceholder(param: string): string {
+    const placeholders: { [key: string]: string } = {
+      'p_nome': 'Digite o nome completo',
+      'p_cpf': 'Digite o CPF (ex: 123.456.789-00)',
+      'p_nasc': 'Digite a data de nascimento (ex: 1990-01-15)',
+      'p_senha': 'Digite a senha',
+      'p_end_id': 'Digite o ID do endereço',
+      'p_email': 'Digite o e-mail (ex: exemplo@email.com)',
+      'p_telefone': 'Digite o telefone (ex: (11) 98765-4321)',
+      'p_cli_id': 'Digite o ID do cliente',
+      'p_ser_id': 'Digite o ID do serviço',
+      'p_pre_id': 'Digite o ID do prestador',
+      'p_data': 'Digite a data (ex: 2024-12-25)',
+      'p_periodo': 'Digite o período (ex: Manhã, Tarde, Noite)',
+      'p_status_inicial': 'Digite o status inicial (ex: Pendente)',
+      'p_valor': 'Digite o valor (ex: 150.00)',
+      'p_age_id': 'Digite o ID do agendamento',
+      'p_motivo': 'Digite o motivo',
+      'p_nota': 'Digite a nota de 1 a 5',
+      'p_coment': 'Digite o comentário da avaliação',
+      'p_areas': 'Digite as áreas de atuação (ex: Encanamento, Elétrica)',
+      'p_data_inicio': 'Digite a data de início (ex: 2024-01-01)',
+      'p_data_fim': 'Digite a data de fim (ex: 2024-12-31)',
+      'p_ini': 'Digite a data de início (ex: 2024-01-01)',
+      'p_fim': 'Digite a data de fim (ex: 2024-12-31)',
+      'p_status': 'Digite o status (ex: Pendente, Confirmado)',
+      'p_dsp_id': 'Digite o ID da disputa',
+      'p_forma': 'Digite a forma de pagamento (ex: Cartão, PIX)',
+      'p_valor_total': 'Digite o valor total (ex: 250.00)',
+      'p_exp': 'Digite a experiência do prestador',
+      'p_certs': 'Digite os certificados do prestador',
+      'p_ref': 'Digite a referência do gateway de pagamento'
+    };
+    
+    return placeholders[param.toLowerCase()] || `Digite o valor para ${param}`;
+  }
+
   guessProcedureParams(procedureName: string): string[] {
     const paramMap: any = {
       'pesquisar_clientes_por_nome_exato': ['p_nome'],
@@ -530,11 +606,11 @@ export class DatabaseTestComponent implements OnInit {
       'cancelar_agendamento_de_servico': ['p_age_id', 'p_motivo'],
       'registrar_avaliacao_de_prestador': ['p_age_id', 'p_cli_id', 'p_pre_id', 'p_nota', 'p_coment'],
       'inserir_cliente': ['p_nome', 'p_cpf', 'p_nasc', 'p_senha', 'p_end_id', 'p_email', 'p_telefone'],
-      'inserir_prestador': ['p_nome', 'p_cpf', 'p_nasc', 'p_areas', 'p_senha', 'p_end_id', 'p_email', 'p_telefone'],
-      'listar_agendamentos_por_periodo_e_status': ['p_data_inicio', 'p_data_fim', 'p_status'],
+      'inserir_prestador': ['p_nome', 'p_cpf', 'p_nasc', 'p_areas', 'p_exp', 'p_certs', 'p_senha', 'p_end_id', 'p_email', 'p_telefone'],
+      'listar_agendamentos_por_periodo_e_status': ['p_ini', 'p_fim', 'p_status'],
       'abrir_disputa': ['p_age_id', 'p_cli_id', 'p_pre_id', 'p_motivo', 'p_valor'],
       'fechar_disputa': ['p_dsp_id'],
-      'inserir_pagamento': ['p_age_id', 'p_forma', 'p_valor_total', 'p_status']
+      'inserir_pagamento': ['p_age_id', 'p_forma', 'p_valor', 'p_status', 'p_ref', 'p_data']
     };
     
     return paramMap[procedureName.toLowerCase()] || [];
