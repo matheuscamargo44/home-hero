@@ -28,7 +28,7 @@ public class Cliente {
     /**
      * Nome completo do cliente
      */
-    @Column(name = "cli_nome_completo", nullable = false, length = 80)
+    @Column(name = "cli_nome", nullable = false, length = 80)
     private String nomeCompleto;
 
     /**
@@ -40,7 +40,7 @@ public class Cliente {
     /**
      * Data de nascimento do cliente
      */
-    @Column(name = "cli_data_nascimento", nullable = false)
+    @Column(name = "cli_nascimento", nullable = false)
     private LocalDate dataNascimento;
 
     /**
@@ -52,7 +52,7 @@ public class Cliente {
     /**
      * ID do endereço do cliente (chave estrangeira)
      */
-    @Column(name = "cli_endereco_id", nullable = false)
+    @Column(name = "end_id", nullable = false)
     private Integer enderecoId;
 
     /**

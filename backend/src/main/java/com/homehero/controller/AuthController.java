@@ -2,8 +2,10 @@ package com.homehero.controller;
 
 import com.homehero.model.Admin;
 import com.homehero.model.Cliente;
+import com.homehero.model.Prestador;
 import com.homehero.repository.AdminRepository;
 import com.homehero.repository.ClienteRepository;
+import com.homehero.repository.PrestadorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,9 @@ public class AuthController {
 
     @Autowired
     private ClienteRepository clienteRepository;
+
+    @Autowired
+    private PrestadorRepository prestadorRepository;
 
     /**
      * Endpoint de login unificado
@@ -68,10 +73,11 @@ public class AuthController {
                 }
             }
 
-            // Se não é admin, tenta verificar se é cliente (por CPF)
+            // Se não é admin, tenta verificar se é cliente ou prestador (por CPF)
             // Remove caracteres não numéricos do CPF
             String cpfLimpo = identifier.replaceAll("[^0-9]", "");
             if (cpfLimpo.length() == 11) {
+                // Tenta cliente primeiro
                 Optional<Cliente> clienteOpt = clienteRepository.findByCpf(cpfLimpo);
                 if (clienteOpt.isPresent()) {
                     Cliente cliente = clienteOpt.get();
@@ -89,9 +95,28 @@ public class AuthController {
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
                     }
                 }
+
+                // Se não é cliente, tenta prestador
+                Optional<Prestador> prestadorOpt = prestadorRepository.findByCpf(cpfLimpo);
+                if (prestadorOpt.isPresent()) {
+                    Prestador prestador = prestadorOpt.get();
+                    if (prestador.getSenha().equals(senha)) {
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("success", true);
+                        response.put("userType", "prestador");
+                        response.put("prestador", prestador);
+                        response.put("token", "prestador-token-" + prestador.getId());
+                        return ResponseEntity.ok(response);
+                    } else {
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("success", false);
+                        response.put("message", "Senha incorreta");
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                    }
+                }
             }
 
-            // Se não encontrou nem admin nem cliente
+            // Se não encontrou admin, cliente nem prestador
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "Email/CPF ou senha incorretos");

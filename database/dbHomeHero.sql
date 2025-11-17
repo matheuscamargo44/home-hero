@@ -235,6 +235,14 @@ CREATE TABLE historico_status_agendamento (
   FOREIGN KEY (age_id) REFERENCES agendamento_servico(age_id)
 );
 
+-- 2.19) admin
+CREATE TABLE admin (
+  adm_id INT PRIMARY KEY AUTO_INCREMENT,
+  adm_nome VARCHAR(80) NOT NULL,
+  adm_email VARCHAR(120) NOT NULL UNIQUE,
+  adm_senha VARCHAR(60) NOT NULL
+);
+
 USE homehero;
 
 -- =========================================================
@@ -252,8 +260,16 @@ SELECT
   cli_senha        AS 'Senha',
   end_id           AS 'ID do endereço',
   cli_email        AS 'E-mail do cliente',
-  cli_telefone     AS 'Telefone do cliente'
+  cli_telefone     AS 'Telefone do cliente',
+  end_logradouro   AS 'Logradouro',
+  end_numero       AS 'Número',
+  end_complemento  AS 'Complemento',
+  end_bairro       AS 'Bairro',
+  end_cidade       AS 'Cidade',
+  end_uf           AS 'UF',
+  end_cep          AS 'CEP'
 FROM cliente
+LEFT JOIN endereco USING (end_id)
 ORDER BY cli_nome;
 
 -- 3.2) view_dados_de_prestadores
@@ -270,8 +286,16 @@ SELECT
   pre_senha        AS 'Senha',
   end_id           AS 'ID do endereço',
   pre_email        AS 'E-mail do prestador',
-  pre_telefone     AS 'Telefone do prestador'
+  pre_telefone     AS 'Telefone do prestador',
+  end_logradouro   AS 'Logradouro',
+  end_numero       AS 'Número',
+  end_complemento  AS 'Complemento',
+  end_bairro       AS 'Bairro',
+  end_cidade       AS 'Cidade',
+  end_uf           AS 'UF',
+  end_cep          AS 'CEP'
 FROM prestador
+LEFT JOIN endereco USING (end_id)
 ORDER BY pre_nome;
 
 -- 3.3) view_servicos_oferecidos_por_prestadores
@@ -311,24 +335,38 @@ SELECT
   pre_id                 AS 'ID do prestador',
   age_data               AS 'Data do agendamento',
   age_janela             AS 'Período do agendamento',
-  end_id                 AS 'ID do endereço',
+  agendamento_servico.end_id AS 'ID do endereço do agendamento',
   age_status             AS 'Status do agendamento',
   age_valor              AS 'Valor do agendamento',
   age_pago               AS 'Pago',
   age_data_cancel        AS 'Data de cancelamento',
   age_motivo             AS 'Motivo do cancelamento',
   cli_nome               AS 'Nome do cliente',
+  cli_cpf                AS 'CPF do cliente',
   cli_email              AS 'E-mail do cliente',
   cli_telefone           AS 'Telefone do cliente',
   prestador.pre_nome     AS 'Nome do prestador',
   prestador.pre_email    AS 'E-mail do prestador',
   prestador.pre_telefone AS 'Telefone do prestador',
   ser_nome               AS 'Nome do serviço',
-  ser_descricao          AS 'Descrição do serviço'
+  ser_descricao          AS 'Descrição do serviço',
+  ser_preco_base         AS 'Preço base do serviço',
+  end_logradouro         AS 'Logradouro',
+  end_numero             AS 'Número',
+  end_bairro             AS 'Bairro',
+  end_cidade             AS 'Cidade',
+  end_uf                 AS 'UF',
+  end_cep                AS 'CEP',
+  pag_id                 AS 'ID do pagamento',
+  pag_forma              AS 'Forma de pagamento',
+  pag_status             AS 'Status do pagamento',
+  pag_valor               AS 'Valor pago'
 FROM agendamento_servico
 JOIN cliente USING (cli_id)
 JOIN servico USING (ser_id)
 LEFT JOIN prestador USING (pre_id)
+LEFT JOIN endereco ON endereco.end_id = agendamento_servico.end_id
+LEFT JOIN pagamento USING (age_id)
 ORDER BY age_data;
 
 -- 3.5) view_media_de_avaliacao_por_prestador
@@ -336,48 +374,64 @@ CREATE OR REPLACE VIEW view_media_de_avaliacao_por_prestador
 AS
 SELECT
   pre_id              AS 'ID do prestador',
+  pre_nome            AS 'Nome do prestador',
+  pre_email           AS 'E-mail do prestador',
   COUNT(*)            AS 'Quantidade de avaliações',
-  AVG(ava_nota)       AS 'Média das notas'
+  AVG(ava_nota)       AS 'Média das notas',
+  MIN(ava_nota)       AS 'Nota mínima',
+  MAX(ava_nota)       AS 'Nota máxima',
+  MIN(ava_data)        AS 'Primeira avaliação',
+  MAX(ava_data)       AS 'Última avaliação'
 FROM avaliacao
+JOIN prestador USING (pre_id)
 WHERE pre_id IS NOT NULL
-GROUP BY pre_id
-ORDER BY 'Média das notas' DESC;
+GROUP BY pre_id, pre_nome, pre_email
+ORDER BY AVG(ava_nota) DESC;
 
 -- 3.6) view_agendamentos_por_status
 CREATE OR REPLACE VIEW view_agendamentos_por_status
 AS
 SELECT
-  age_status AS 'Status do agendamento',
-  COUNT(*)   AS 'Total de agendamentos'
+  age_status                    AS 'Status do agendamento',
+  COUNT(*)                      AS 'Total de agendamentos',
+  SUM(age_valor)                AS 'Soma dos valores',
+  AVG(age_valor)                AS 'Valor médio',
+  SUM(CASE WHEN age_pago = 1 THEN 1 ELSE 0 END) AS 'Total pagos',
+  SUM(CASE WHEN age_pago = 1 THEN age_valor ELSE 0 END) AS 'Valor total pago'
 FROM agendamento_servico
 GROUP BY age_status
-ORDER BY 'Total de agendamentos' DESC;
+ORDER BY COUNT(*) DESC;
 
 -- 3.7) view_agendamentos_por_periodo
 CREATE OR REPLACE VIEW view_agendamentos_por_periodo
 AS
 SELECT
-  age_janela AS 'Período do agendamento',
-  COUNT(*)   AS 'Total de agendamentos'
+  age_janela         AS 'Período do agendamento',
+  COUNT(*)          AS 'Total de agendamentos',
+  SUM(age_valor)    AS 'Soma dos valores',
+  AVG(age_valor)    AS 'Valor médio'
 FROM agendamento_servico
 GROUP BY age_janela
-ORDER BY 'Total de agendamentos' DESC;
+ORDER BY COUNT(*) DESC;
 
 -- 3.8) view_agendamentos_por_regiao_cliente
 CREATE OR REPLACE VIEW view_agendamentos_por_regiao_cliente
 AS
 SELECT
-  reg_id            AS 'ID da região',
-  reg_nome          AS 'Nome da região',
-  reg_cidade        AS 'Cidade da região',
-  reg_uf            AS 'UF da região',
-  COUNT(age_id)     AS 'Total de agendamentos'
+  COALESCE(regiao.reg_id, 0)           AS 'ID da região',
+  COALESCE(regiao.reg_nome, 'Sem registro') AS 'Nome da região',
+  COALESCE(regiao.reg_cidade, endereco.end_cidade) AS 'Cidade',
+  COALESCE(regiao.reg_uf, endereco.end_uf)      AS 'UF',
+  COUNT(age_id)                 AS 'Total de agendamentos',
+  SUM(age_valor)                AS 'Soma dos valores',
+  AVG(age_valor)                AS 'Valor médio'
 FROM agendamento_servico
-JOIN cliente USING (cli_id)
-LEFT JOIN registro_regiao USING (cli_id)
-LEFT JOIN regiao USING (reg_id)
-GROUP BY reg_id, reg_nome, reg_cidade, reg_uf
-ORDER BY 'Total de agendamentos' DESC;
+JOIN cliente ON cliente.cli_id = agendamento_servico.cli_id
+LEFT JOIN endereco ON endereco.end_id = cliente.end_id
+LEFT JOIN registro_regiao ON registro_regiao.cli_id = cliente.cli_id
+LEFT JOIN regiao ON regiao.reg_id = registro_regiao.reg_id
+GROUP BY regiao.reg_id, regiao.reg_nome, regiao.reg_cidade, regiao.reg_uf, endereco.end_cidade, endereco.end_uf
+ORDER BY COUNT(age_id) DESC;
 
 -- 3.9) view_pagamentos_por_status
 CREATE OR REPLACE VIEW view_pagamentos_por_status
@@ -385,10 +439,13 @@ AS
 SELECT
   pag_status        AS 'Status do pagamento',
   COUNT(*)          AS 'Quantidade de pagamentos',
-  SUM(pag_valor)    AS 'Soma dos valores pagos'
+  SUM(pag_valor)    AS 'Soma dos valores pagos',
+  AVG(pag_valor)    AS 'Ticket médio',
+  MIN(pag_valor)    AS 'Valor mínimo',
+  MAX(pag_valor)    AS 'Valor máximo'
 FROM pagamento
 GROUP BY pag_status
-ORDER BY 'Quantidade de pagamentos' DESC;
+ORDER BY COUNT(*) DESC;
 
 -- 3.10) view_disputas_abertas
 CREATE OR REPLACE VIEW view_disputas_abertas
@@ -404,10 +461,18 @@ SELECT
   dsp_abertura        AS 'Data de abertura',
   dsp_fechamento      AS 'Data de fechamento',
   cli_nome            AS 'Nome do cliente',
-  pre_nome            AS 'Nome do prestador'
+  cli_email           AS 'E-mail do cliente',
+  pre_nome            AS 'Nome do prestador',
+  pre_email           AS 'E-mail do prestador',
+  age_data            AS 'Data do agendamento',
+  age_status          AS 'Status do agendamento',
+  age_valor           AS 'Valor do agendamento',
+  ser_nome            AS 'Nome do serviço'
 FROM disputa_reembolso
 LEFT JOIN cliente   USING (cli_id)
 LEFT JOIN prestador USING (pre_id)
+LEFT JOIN agendamento_servico USING (age_id)
+LEFT JOIN servico USING (ser_id)
 WHERE dsp_status != 'Resolvida'
 ORDER BY dsp_abertura DESC;
 
@@ -417,15 +482,20 @@ AS
 SELECT
   pre_id          AS 'ID do prestador',
   pre_nome        AS 'Nome do prestador',
+  pre_cpf         AS 'CPF do prestador',
   pre_email       AS 'E-mail do prestador',
   pre_telefone    AS 'Telefone do prestador',
+  pre_areas       AS 'Áreas de atuação',
   dis_id          AS 'ID da disponibilidade',
   dis_dia         AS 'Dia da semana',
   dis_janela      AS 'Janela de atendimento',
-  dis_ativo       AS 'Disponibilidade ativa'
+  dis_ativo       AS 'Disponibilidade ativa',
+  end_cidade      AS 'Cidade',
+  end_uf          AS 'UF'
 FROM prestador
 JOIN disponibilidade_prestador USING (pre_id)
-ORDER BY pre_nome, dis_dia;
+LEFT JOIN endereco USING (end_id)
+ORDER BY pre_nome, dis_dia, dis_janela;
 
 -- 3.12) view_agendamentos_completo
 CREATE OR REPLACE VIEW view_agendamentos_completo
@@ -470,7 +540,7 @@ FROM agendamento_servico
 JOIN cliente USING (cli_id)
 JOIN servico USING (ser_id)
 LEFT JOIN prestador USING (pre_id)
-LEFT JOIN endereco USING (end_id);
+LEFT JOIN endereco ON endereco.end_id = agendamento_servico.end_id;
 
 -- 3.13) view_clientes_com_endereco
 CREATE OR REPLACE VIEW view_clientes_com_endereco
@@ -540,19 +610,28 @@ SELECT
   ava_coment          AS 'Comentário',
   ava_data            AS 'Data da avaliação',
   cli_nome            AS 'Nome do cliente',
+  cli_cpf             AS 'CPF do cliente',
   cli_email           AS 'E-mail do cliente',
+  cli_telefone        AS 'Telefone do cliente',
   pre_nome            AS 'Nome do prestador',
+  pre_cpf             AS 'CPF do prestador',
   pre_email           AS 'E-mail do prestador',
+  pre_telefone        AS 'Telefone do prestador',
   servico.ser_id      AS 'ID do serviço',
   ser_nome            AS 'Nome do serviço',
   ser_descricao       AS 'Descrição do serviço',
+  ser_preco_base      AS 'Preço base do serviço',
   age_data            AS 'Data do agendamento',
-  age_status          AS 'Status do agendamento'
+  age_status          AS 'Status do agendamento',
+  age_valor           AS 'Valor do agendamento',
+  age_janela          AS 'Período do agendamento',
+  cat_nome            AS 'Nome da categoria'
 FROM avaliacao
 JOIN cliente   USING (cli_id)
 LEFT JOIN prestador USING (pre_id)
 JOIN agendamento_servico USING (age_id)
-JOIN servico USING (ser_id);
+JOIN servico USING (ser_id)
+LEFT JOIN categoria_servico USING (cat_id);
 
 -- 3.16) view_pagamentos_detalhados
 CREATE OR REPLACE VIEW view_pagamentos_detalhados
@@ -568,20 +647,32 @@ SELECT
   age_data            AS 'Data do agendamento',
   age_status          AS 'Status do agendamento',
   age_valor           AS 'Valor do agendamento',
+  age_pago            AS 'Pago no agendamento',
+  age_janela          AS 'Período do agendamento',
   cli_id              AS 'ID do cliente',
   cli_nome            AS 'Nome do cliente',
+  cli_cpf             AS 'CPF do cliente',
   cli_email           AS 'E-mail do cliente',
+  cli_telefone        AS 'Telefone do cliente',
   prestador.pre_id    AS 'ID do prestador',
   pre_nome            AS 'Nome do prestador',
+  pre_cpf             AS 'CPF do prestador',
   pre_email           AS 'E-mail do prestador',
+  pre_telefone        AS 'Telefone do prestador',
   servico.ser_id      AS 'ID do serviço',
   ser_nome            AS 'Nome do serviço',
-  ser_descricao       AS 'Descrição do serviço'
+  ser_descricao       AS 'Descrição do serviço',
+  ser_preco_base      AS 'Preço base do serviço',
+  cat_nome            AS 'Nome da categoria',
+  end_cidade          AS 'Cidade',
+  end_uf              AS 'UF'
 FROM pagamento
 JOIN agendamento_servico USING (age_id)
 JOIN cliente USING (cli_id)
 LEFT JOIN prestador USING (pre_id)
-JOIN servico USING (ser_id);
+JOIN servico USING (ser_id)
+LEFT JOIN categoria_servico USING (cat_id)
+LEFT JOIN endereco ON endereco.end_id = agendamento_servico.end_id;
 
 -- 3.17) view_disputas_com_historico
 CREATE OR REPLACE VIEW view_disputas_com_historico
@@ -597,22 +688,149 @@ SELECT
   dsp_abertura        AS 'Data de abertura',
   dsp_fechamento      AS 'Data de fechamento',
   cli_nome            AS 'Nome do cliente',
+  cli_email           AS 'E-mail do cliente',
   pre_nome            AS 'Nome do prestador',
+  pre_email           AS 'E-mail do prestador',
   age_data            AS 'Data do agendamento',
-  age_status          AS 'Status do agendamento'
+  age_status          AS 'Status do agendamento',
+  age_valor           AS 'Valor do agendamento',
+  ser_nome            AS 'Nome do serviço',
+  his_status_ant      AS 'Status anterior',
+  his_status_novo     AS 'Status novo',
+  his_data            AS 'Data da alteração',
+  not_tipo            AS 'Tipo de notificação',
+  not_msg             AS 'Mensagem da notificação',
+  not_data            AS 'Data da notificação'
 FROM disputa_reembolso
 JOIN agendamento_servico USING (age_id)
-LEFT JOIN cliente USING (cli_id)
-LEFT JOIN prestador USING (pre_id);
+LEFT JOIN cliente ON cliente.cli_id = disputa_reembolso.cli_id
+LEFT JOIN prestador ON prestador.pre_id = disputa_reembolso.pre_id
+LEFT JOIN servico USING (ser_id)
+LEFT JOIN historico_status_agendamento ON historico_status_agendamento.age_id = disputa_reembolso.age_id
+LEFT JOIN notificacao ON notificacao.age_id = disputa_reembolso.age_id AND notificacao.not_tipo = 'Disputa';
+
+-- 3.18) view_notificacoes_detalhadas
+CREATE OR REPLACE VIEW view_notificacoes_detalhadas
+AS
+SELECT
+  not_id              AS 'ID da notificação',
+  not_tipo            AS 'Tipo da notificação',
+  not_msg             AS 'Mensagem',
+  not_enviado         AS 'Enviado',
+  not_data            AS 'Data da notificação',
+  notificacao.cli_id  AS 'ID do cliente',
+  cli_nome            AS 'Nome do cliente',
+  cli_email           AS 'E-mail do cliente',
+  cli_telefone        AS 'Telefone do cliente',
+  notificacao.pre_id  AS 'ID do prestador',
+  pre_nome            AS 'Nome do prestador',
+  pre_email           AS 'E-mail do prestador',
+  pre_telefone        AS 'Telefone do prestador',
+  notificacao.age_id  AS 'ID do agendamento',
+  age_data            AS 'Data do agendamento',
+  age_status          AS 'Status do agendamento',
+  age_valor           AS 'Valor do agendamento',
+  ser_nome            AS 'Nome do serviço',
+  ser_descricao       AS 'Descrição do serviço'
+FROM notificacao
+LEFT JOIN cliente ON cliente.cli_id = notificacao.cli_id
+LEFT JOIN prestador ON prestador.pre_id = notificacao.pre_id
+LEFT JOIN agendamento_servico USING (age_id)
+LEFT JOIN servico USING (ser_id)
+ORDER BY not_data DESC, not_id DESC;
+
+-- 3.19) view_historico_status_completo
+CREATE OR REPLACE VIEW view_historico_status_completo
+AS
+SELECT
+  his_id              AS 'ID do histórico',
+  historico_status_agendamento.age_id AS 'ID do agendamento',
+  his_status_ant      AS 'Status anterior',
+  his_status_novo     AS 'Status novo',
+  his_data            AS 'Data da alteração',
+  agendamento_servico.cli_id AS 'ID do cliente',
+  cli_nome            AS 'Nome do cliente',
+  cli_email           AS 'E-mail do cliente',
+  agendamento_servico.pre_id AS 'ID do prestador',
+  pre_nome            AS 'Nome do prestador',
+  pre_email           AS 'E-mail do prestador',
+  age_data            AS 'Data do agendamento',
+  age_janela          AS 'Janela de horário',
+  age_status          AS 'Status atual',
+  age_valor           AS 'Valor do agendamento',
+  ser_id              AS 'ID do serviço',
+  ser_nome            AS 'Nome do serviço',
+  ser_descricao       AS 'Descrição do serviço'
+FROM historico_status_agendamento
+JOIN agendamento_servico USING (age_id)
+LEFT JOIN cliente ON cliente.cli_id = agendamento_servico.cli_id
+LEFT JOIN prestador ON prestador.pre_id = agendamento_servico.pre_id
+LEFT JOIN servico USING (ser_id)
+ORDER BY his_data DESC, his_id DESC;
+
+-- 3.20) view_receita_por_prestador
+CREATE OR REPLACE VIEW view_receita_por_prestador
+AS
+SELECT
+  prestador.pre_id              AS 'ID do prestador',
+  prestador.pre_nome            AS 'Nome do prestador',
+  prestador.pre_email           AS 'E-mail do prestador',
+  prestador.pre_telefone        AS 'Telefone do prestador',
+  COUNT(DISTINCT pagamento.age_id) AS 'Total de agendamentos pagos',
+  COUNT(pagamento.pag_id)       AS 'Total de pagamentos',
+  SUM(CASE WHEN pagamento.pag_status = 'Pago' THEN pagamento.pag_valor ELSE 0 END) AS 'Receita total (R$)',
+  SUM(CASE WHEN pagamento.pag_status = 'Pendente' THEN pagamento.pag_valor ELSE 0 END) AS 'Receita pendente (R$)',
+  AVG(CASE WHEN pagamento.pag_status = 'Pago' THEN pagamento.pag_valor ELSE NULL END) AS 'Ticket médio (R$)',
+  MIN(CASE WHEN pagamento.pag_status = 'Pago' THEN pagamento.pag_data ELSE NULL END) AS 'Primeiro pagamento',
+  MAX(CASE WHEN pagamento.pag_status = 'Pago' THEN pagamento.pag_data ELSE NULL END) AS 'Último pagamento'
+FROM prestador
+LEFT JOIN agendamento_servico ON agendamento_servico.pre_id = prestador.pre_id
+LEFT JOIN pagamento ON pagamento.age_id = agendamento_servico.age_id
+GROUP BY prestador.pre_id, prestador.pre_nome, prestador.pre_email, prestador.pre_telefone
+ORDER BY SUM(CASE WHEN pagamento.pag_status = 'Pago' THEN pagamento.pag_valor ELSE 0 END) DESC;
+
+-- 3.21) view_receita_por_periodo
+CREATE OR REPLACE VIEW view_receita_por_periodo
+AS
+SELECT
+  DATE_FORMAT(pagamento.pag_data, '%Y-%m') AS 'Período (Ano-Mês)',
+  YEAR(pagamento.pag_data)                AS 'Ano',
+  MONTH(pagamento.pag_data)               AS 'Mês',
+  COUNT(DISTINCT pagamento.pag_id)        AS 'Total de pagamentos',
+  COUNT(DISTINCT agendamento_servico.age_id) AS 'Total de agendamentos',
+  COUNT(DISTINCT agendamento_servico.pre_id) AS 'Total de prestadores',
+  COUNT(DISTINCT agendamento_servico.cli_id) AS 'Total de clientes',
+  SUM(CASE WHEN pagamento.pag_status = 'Pago' THEN pagamento.pag_valor ELSE 0 END) AS 'Receita total paga (R$)',
+  SUM(CASE WHEN pagamento.pag_status = 'Pendente' THEN pagamento.pag_valor ELSE 0 END) AS 'Receita pendente (R$)',
+  SUM(CASE WHEN pagamento.pag_status = 'Cancelado' THEN pagamento.pag_valor ELSE 0 END) AS 'Receita cancelada (R$)',
+  AVG(CASE WHEN pagamento.pag_status = 'Pago' THEN pagamento.pag_valor ELSE NULL END) AS 'Ticket médio (R$)',
+  MIN(pagamento.pag_data)                 AS 'Primeira data',
+  MAX(pagamento.pag_data)                 AS 'Última data'
+FROM pagamento
+LEFT JOIN agendamento_servico ON agendamento_servico.age_id = pagamento.age_id
+GROUP BY DATE_FORMAT(pagamento.pag_data, '%Y-%m'), YEAR(pagamento.pag_data), MONTH(pagamento.pag_data)
+ORDER BY YEAR(pagamento.pag_data) DESC, MONTH(pagamento.pag_data) DESC;
 
 -- =========================================================
 -- 4) PROCEDURES
 -- =========================================================
 
+DROP PROCEDURE IF EXISTS pesquisar_clientes_por_nome_exato;
+DROP PROCEDURE IF EXISTS listar_agendamentos_por_id_de_cliente;
+DROP PROCEDURE IF EXISTS inserir_agendamento_de_servico;
+DROP PROCEDURE IF EXISTS cancelar_agendamento_de_servico;
+DROP PROCEDURE IF EXISTS registrar_avaliacao_de_prestador;
+DROP PROCEDURE IF EXISTS inserir_cliente;
+DROP PROCEDURE IF EXISTS inserir_prestador;
+DROP PROCEDURE IF EXISTS listar_agendamentos_por_periodo_e_status;
+DROP PROCEDURE IF EXISTS abrir_disputa;
+DROP PROCEDURE IF EXISTS fechar_disputa;
+DROP PROCEDURE IF EXISTS inserir_pagamento;
+
 DELIMITER $$
 
 -- 4.1) pesquisar_clientes_por_nome_exato
-CREATE OR REPLACE PROCEDURE pesquisar_clientes_por_nome_exato(
+CREATE PROCEDURE pesquisar_clientes_por_nome_exato(
   IN p_nome VARCHAR(80)
 )
 BEGIN
@@ -626,7 +844,7 @@ BEGIN
 END $$
 
 -- 4.2) listar_agendamentos_por_id_de_cliente
-CREATE OR REPLACE PROCEDURE listar_agendamentos_por_id_de_cliente(
+CREATE PROCEDURE listar_agendamentos_por_id_de_cliente(
   IN p_cli_id INT
 )
 BEGIN
@@ -643,7 +861,7 @@ BEGIN
 END $$
 
 -- 4.3) inserir_agendamento_de_servico
-CREATE OR REPLACE PROCEDURE inserir_agendamento_de_servico(
+CREATE PROCEDURE inserir_agendamento_de_servico(
   IN p_cli_id INT,
   IN p_ser_id INT,
   IN p_pre_id INT,
@@ -663,7 +881,7 @@ BEGIN
 END $$
 
 -- 4.4) cancelar_agendamento_de_servico
-CREATE OR REPLACE PROCEDURE cancelar_agendamento_de_servico(
+CREATE PROCEDURE cancelar_agendamento_de_servico(
   IN p_age_id INT,
   IN p_motivo VARCHAR(120)
 )
@@ -677,7 +895,7 @@ BEGIN
 END $$
 
 -- 4.5) registrar_avaliacao_de_prestador
-CREATE OR REPLACE PROCEDURE registrar_avaliacao_de_prestador(
+CREATE PROCEDURE registrar_avaliacao_de_prestador(
   IN p_age_id INT,
   IN p_cli_id INT,
   IN p_pre_id INT,
@@ -692,7 +910,7 @@ BEGIN
 END $$
 
 -- 4.6) inserir_cliente
-CREATE OR REPLACE PROCEDURE inserir_cliente(
+CREATE PROCEDURE inserir_cliente(
   IN p_nome VARCHAR(80),
   IN p_cpf VARCHAR(14),
   IN p_nasc DATE,
@@ -710,7 +928,7 @@ BEGIN
 END $$
 
 -- 4.7) inserir_prestador
-CREATE OR REPLACE PROCEDURE inserir_prestador(
+CREATE PROCEDURE inserir_prestador(
   IN p_nome VARCHAR(80),
   IN p_cpf VARCHAR(14),
   IN p_nasc DATE,
@@ -734,7 +952,7 @@ BEGIN
 END $$
 
 -- 4.8) listar_agendamentos_por_periodo_e_status
-CREATE OR REPLACE PROCEDURE listar_agendamentos_por_periodo_e_status(
+CREATE PROCEDURE listar_agendamentos_por_periodo_e_status(
   IN p_ini DATE,
   IN p_fim DATE,
   IN p_status VARCHAR(20)
@@ -755,7 +973,7 @@ BEGIN
 END $$
 
 -- 4.9) abrir_disputa
-CREATE OR REPLACE PROCEDURE abrir_disputa(
+CREATE PROCEDURE abrir_disputa(
   IN p_age_id INT,
   IN p_cli_id INT,
   IN p_pre_id INT,
@@ -772,7 +990,7 @@ BEGIN
 END $$
 
 -- 4.10) fechar_disputa
-CREATE OR REPLACE PROCEDURE fechar_disputa(
+CREATE PROCEDURE fechar_disputa(
   IN p_dsp_id INT
 )
 BEGIN
@@ -784,7 +1002,7 @@ BEGIN
 END $$
 
 -- 4.11) inserir_pagamento
-CREATE OR REPLACE PROCEDURE inserir_pagamento(
+CREATE PROCEDURE inserir_pagamento(
   IN p_age_id INT,
   IN p_forma VARCHAR(20),
   IN p_valor FLOAT,
@@ -805,10 +1023,17 @@ DELIMITER ;
 -- 5) TRIGGERS
 -- =========================================================
 
+DROP TRIGGER IF EXISTS trigger_pos_inserir_agendamento_registrar_status_inicial;
+DROP TRIGGER IF EXISTS trigger_pos_atualizar_agendamento_registrar_mudanca_de_status;
+DROP TRIGGER IF EXISTS trigger_pos_inserir_avaliacao_criar_notificacao;
+DROP TRIGGER IF EXISTS trigger_pos_inserir_pagamento_confirmado_criar_notificacao;
+DROP TRIGGER IF EXISTS trigger_pos_inserir_agendamento_notificar_prestador;
+DROP TRIGGER IF EXISTS trigger_pos_inserir_disputa_aberta_criar_notificacao;
+
 DELIMITER $$
 
 -- 5.1) trigger_pos_inserir_agendamento_registrar_status_inicial
-CREATE OR REPLACE TRIGGER trigger_pos_inserir_agendamento_registrar_status_inicial
+CREATE TRIGGER trigger_pos_inserir_agendamento_registrar_status_inicial
 AFTER INSERT ON agendamento_servico
 FOR EACH ROW
 BEGIN
@@ -819,7 +1044,7 @@ BEGIN
 END $$
 
 -- 5.2) trigger_pos_atualizar_agendamento_registrar_mudanca_de_status
-CREATE OR REPLACE TRIGGER trigger_pos_atualizar_agendamento_registrar_mudanca_de_status
+CREATE TRIGGER trigger_pos_atualizar_agendamento_registrar_mudanca_de_status
 AFTER UPDATE ON agendamento_servico
 FOR EACH ROW
 BEGIN
@@ -832,7 +1057,7 @@ BEGIN
 END $$
 
 -- 5.3) trigger_pos_inserir_avaliacao_criar_notificacao
-CREATE OR REPLACE TRIGGER trigger_pos_inserir_avaliacao_criar_notificacao
+CREATE TRIGGER trigger_pos_inserir_avaliacao_criar_notificacao
 AFTER INSERT ON avaliacao
 FOR EACH ROW
 BEGIN
@@ -846,7 +1071,7 @@ BEGIN
 END $$
 
 -- 5.4) trigger_pos_inserir_pagamento_confirmado_criar_notificacao
-CREATE OR REPLACE TRIGGER trigger_pos_inserir_pagamento_confirmado_criar_notificacao
+CREATE TRIGGER trigger_pos_inserir_pagamento_confirmado_criar_notificacao
 AFTER INSERT ON pagamento
 FOR EACH ROW
 BEGIN
@@ -867,7 +1092,7 @@ BEGIN
 END $$
 
 -- 5.5) trigger_pos_inserir_agendamento_notificar_prestador
-CREATE OR REPLACE TRIGGER trigger_pos_inserir_agendamento_notificar_prestador
+CREATE TRIGGER trigger_pos_inserir_agendamento_notificar_prestador
 AFTER INSERT ON agendamento_servico
 FOR EACH ROW
 BEGIN
@@ -881,7 +1106,7 @@ BEGIN
 END $$
 
 -- 5.6) trigger_pos_inserir_disputa_aberta_criar_notificacao
-CREATE OR REPLACE TRIGGER trigger_pos_inserir_disputa_aberta_criar_notificacao
+CREATE TRIGGER trigger_pos_inserir_disputa_aberta_criar_notificacao
 AFTER INSERT ON disputa_reembolso
 FOR EACH ROW
 BEGIN

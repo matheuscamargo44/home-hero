@@ -43,6 +43,10 @@ export class ClienteService {
     const cpfLimpo = cpf.replace(/[^0-9]/g, '');
     return this.http.get<any>(`${this.apiUrl}/cpf/${encodeURIComponent(cpfLimpo)}`);
   }
+
+  cadastrar(dados: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/cadastro`, dados);
+  }
 }
 
 

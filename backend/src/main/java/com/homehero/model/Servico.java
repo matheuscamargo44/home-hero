@@ -50,7 +50,7 @@ public class Servico {
     /**
      * ID da categoria do serviço (chave estrangeira)
      */
-    @Column(name = "ser_cat_id")
+    @Column(name = "cat_id")
     private Integer categoriaId;
 }
 

@@ -368,7 +368,7 @@ public class DatabaseTestService {
             Object endId = query.getSingleResult();
             
             // Inserir agendamento
-            sql = "INSERT INTO agendamento_servico (age_cli_id, age_ser_id, age_pre_id, age_data, age_janela, age_end_id, age_status, age_valor, age_pago) " +
+            sql = "INSERT INTO agendamento_servico (cli_id, ser_id, pre_id, age_data, age_janela, end_id, age_status, age_valor, age_pago) " +
                   "VALUES (?, ?, ?, DATE_ADD(CURDATE(), INTERVAL 1 DAY), 'Manhã', ?, 'Agendado', 150.00, 0)";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, cliId);
@@ -383,14 +383,14 @@ public class DatabaseTestService {
             Object ageId = query.getSingleResult();
             
             // Verificar se o trigger foi executado (histórico de status)
-            sql = "SELECT * FROM historico_status_agendamento WHERE his_age_id = ?";
+            sql = "SELECT * FROM historico_status_agendamento WHERE age_id = ?";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
             @SuppressWarnings("unchecked")
             List<Object[]> historico = query.getResultList();
             
             // Verificar notificações criadas
-            sql = "SELECT * FROM notificacao WHERE not_age_id = ? ORDER BY not_data DESC LIMIT 5";
+            sql = "SELECT * FROM notificacao WHERE age_id = ? ORDER BY not_data DESC LIMIT 5";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
             @SuppressWarnings("unchecked")
@@ -435,7 +435,7 @@ public class DatabaseTestService {
             query.executeUpdate();
             
             // Verificar histórico criado pelo trigger
-            sql = "SELECT * FROM historico_status_agendamento WHERE his_age_id = ? ORDER BY his_data_alteracao DESC LIMIT 1";
+            sql = "SELECT * FROM historico_status_agendamento WHERE age_id = ? ORDER BY his_data DESC LIMIT 1";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
             @SuppressWarnings("unchecked")
@@ -458,7 +458,7 @@ public class DatabaseTestService {
         Map<String, Object> response = new HashMap<>();
         try {
             // Buscar primeiro agendamento com prestador
-            String sql = "SELECT age_id, age_cli_id, age_pre_id FROM agendamento_servico WHERE age_pre_id IS NOT NULL LIMIT 1";
+            String sql = "SELECT age_id, cli_id, pre_id FROM agendamento_servico WHERE pre_id IS NOT NULL LIMIT 1";
             Query query = entityManager.createNativeQuery(sql);
             @SuppressWarnings("unchecked")
             List<Object[]> results = query.getResultList();
@@ -474,7 +474,7 @@ public class DatabaseTestService {
             Object preId = results.get(0)[2];
             
             // Inserir avaliação
-            sql = "INSERT INTO avaliacao (ava_age_id, ava_cli_id, ava_pre_id, ava_nota, ava_comentario, ava_data) " +
+            sql = "INSERT INTO avaliacao (age_id, cli_id, pre_id, ava_nota, ava_coment, ava_data) " +
                   "VALUES (?, ?, ?, 5, 'Excelente serviço!', CURDATE())";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
@@ -483,7 +483,7 @@ public class DatabaseTestService {
             query.executeUpdate();
             
             // Verificar notificação criada pelo trigger
-            sql = "SELECT * FROM notificacao WHERE not_age_id = ? AND not_tipo = 'Avaliacao' ORDER BY not_data DESC LIMIT 1";
+            sql = "SELECT * FROM notificacao WHERE age_id = ? AND not_tipo = 'Avaliacao' ORDER BY not_data DESC LIMIT 1";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
             @SuppressWarnings("unchecked")
@@ -509,14 +509,14 @@ public class DatabaseTestService {
             Object ageId = query.getSingleResult();
             
             // Inserir pagamento confirmado
-            sql = "INSERT INTO pagamento (pag_age_id, pag_forma, pag_valor_total, pag_status, pag_referencia_gateway, pag_data) " +
+            sql = "INSERT INTO pagamento (age_id, pag_forma, pag_valor, pag_status, pag_ref, pag_data) " +
                   "VALUES (?, 'Cartão de Crédito', 150.00, 'Pago', CONCAT('TEST-', UNIX_TIMESTAMP()), CURDATE())";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
             query.executeUpdate();
             
             // Verificar notificação criada pelo trigger
-            sql = "SELECT * FROM notificacao WHERE not_age_id = ? AND not_tipo = 'Pagamento' ORDER BY not_data DESC LIMIT 1";
+            sql = "SELECT * FROM notificacao WHERE age_id = ? AND not_tipo = 'Pagamento' ORDER BY not_data DESC LIMIT 1";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
             @SuppressWarnings("unchecked")
@@ -537,7 +537,7 @@ public class DatabaseTestService {
         Map<String, Object> response = new HashMap<>();
         try {
             // Buscar primeiro agendamento
-            String sql = "SELECT age_id, age_cli_id, age_pre_id FROM agendamento_servico LIMIT 1";
+            String sql = "SELECT age_id, cli_id, pre_id FROM agendamento_servico LIMIT 1";
             Query query = entityManager.createNativeQuery(sql);
             @SuppressWarnings("unchecked")
             List<Object[]> results = query.getResultList();
@@ -553,7 +553,7 @@ public class DatabaseTestService {
             Object preId = results.get(0)[2];
             
             // Inserir disputa aberta
-            sql = "INSERT INTO disputa_reembolso (dsp_age_id, dsp_cli_id, dsp_pre_id, dsp_motivo, dsp_status, dsp_valor_reembolsar, dsp_data_abertura) " +
+            sql = "INSERT INTO disputa_reembolso (age_id, cli_id, pre_id, dsp_motivo, dsp_status, dsp_valor, dsp_abertura) " +
                   "VALUES (?, ?, ?, 'Serviço não realizado conforme combinado', 'Aberta', 150.00, CURDATE())";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
@@ -562,7 +562,7 @@ public class DatabaseTestService {
             query.executeUpdate();
             
             // Verificar notificação criada pelo trigger
-            sql = "SELECT * FROM notificacao WHERE not_age_id = ? ORDER BY not_data DESC LIMIT 5";
+            sql = "SELECT * FROM notificacao WHERE age_id = ? ORDER BY not_data DESC LIMIT 5";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
             @SuppressWarnings("unchecked")

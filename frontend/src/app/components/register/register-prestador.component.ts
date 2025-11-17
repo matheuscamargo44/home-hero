@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
+import { PrestadorService } from '../../services/prestador.service';
 
 @Component({
   selector: 'app-register-prestador',
@@ -418,6 +419,7 @@ export class RegisterPrestadorComponent implements OnInit {
   
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private prestadorService = inject(PrestadorService);
 
   ngOnInit(): void {
     this.registerForm = this.fb.group({
@@ -494,14 +496,24 @@ export class RegisterPrestadorComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Simulação de cadastro (substitua por chamada real à API)
-    setTimeout(() => {
-      const formValue = this.registerForm.value;
-      console.log('Cadastro de Prestador:', formValue);
-      this.isLoading = false;
-      alert('Conta criada com sucesso! (Esta é uma simulação)');
-      this.router.navigate(['/login']);
-    }, 1500);
+    const formValue = this.registerForm.value;
+    
+    this.prestadorService.cadastrar(formValue).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        if (response.success) {
+          alert('Conta criada com sucesso!');
+          this.router.navigate(['/login']);
+        } else {
+          this.errorMessage = response.message || 'Erro ao criar conta';
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error.error?.message || 'Erro ao criar conta. Tente novamente.';
+        console.error('Erro ao cadastrar:', error);
+      }
+    });
   }
 }
 

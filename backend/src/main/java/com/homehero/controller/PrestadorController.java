@@ -1,7 +1,7 @@
 package com.homehero.controller;
 
-import com.homehero.model.Cliente;
-import com.homehero.repository.ClienteRepository;
+import com.homehero.model.Prestador;
+import com.homehero.repository.PrestadorRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -17,25 +17,25 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Controller responsável pelas operações relacionadas a clientes
+ * Controller responsável pelas operações relacionadas a prestadores
  */
 @RestController
-@RequestMapping("/api/clientes")
+@RequestMapping("/api/prestadores")
 @CrossOrigin(origins = "*")
-public class ClienteController {
+public class PrestadorController {
 
     @Autowired
-    private ClienteRepository clienteRepository;
+    private PrestadorRepository prestadorRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
 
     /**
-     * Endpoint para buscar um cliente pelo CPF
+     * Endpoint para buscar um prestador pelo CPF
      * Remove caracteres não numéricos do CPF antes de buscar
      * 
-     * @param cpf CPF do cliente (pode conter pontos e traços)
-     * @return ResponseEntity com dados do cliente ou mensagem de erro
+     * @param cpf CPF do prestador (pode conter pontos e traços)
+     * @return ResponseEntity com dados do prestador ou mensagem de erro
      */
     @GetMapping("/cpf/{cpf}")
     public ResponseEntity<Map<String, Object>> getByCpf(@PathVariable String cpf) {
@@ -43,13 +43,13 @@ public class ClienteController {
             // Remove caracteres não numéricos do CPF
             String cpfLimpo = cpf.replaceAll("[^0-9]", "");
             
-            Optional<Cliente> clienteOpt = clienteRepository.findByCpf(cpfLimpo);
+            Optional<Prestador> prestadorOpt = prestadorRepository.findByCpf(cpfLimpo);
             
-            if (clienteOpt.isPresent()) {
-                Cliente cliente = clienteOpt.get();
+            if (prestadorOpt.isPresent()) {
+                Prestador prestador = prestadorOpt.get();
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", true);
-                response.put("cliente", cliente);
+                response.put("prestador", prestador);
                 return ResponseEntity.ok(response);
             } else {
                 Map<String, Object> response = new HashMap<>();
@@ -60,17 +60,17 @@ public class ClienteController {
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", "Erro ao buscar cliente: " + e.getMessage());
+            response.put("message", "Erro ao buscar prestador: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     /**
-     * Endpoint para criar um novo cliente
-     * Cria primeiro o endereço e depois o cliente
+     * Endpoint para criar um novo prestador
+     * Cria primeiro o endereço e depois o prestador
      * 
-     * @param dados Mapa contendo os dados do cliente e endereço
-     * @return ResponseEntity com o cliente criado ou mensagem de erro
+     * @param dados Mapa contendo os dados do prestador e endereço
+     * @return ResponseEntity com o prestador criado ou mensagem de erro
      */
     @PostMapping("/cadastro")
     @Transactional
@@ -88,8 +88,8 @@ public class ClienteController {
 
             // Verificar se CPF já existe
             String cpf = dados.get("cpf").toString().replaceAll("[^0-9]", "");
-            Optional<Cliente> clienteExistente = clienteRepository.findByCpf(cpf);
-            if (clienteExistente.isPresent()) {
+            Optional<Prestador> prestadorExistente = prestadorRepository.findByCpf(cpf);
+            if (prestadorExistente.isPresent()) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", false);
                 response.put("message", "CPF já cadastrado");
@@ -99,7 +99,7 @@ public class ClienteController {
             // Verificar se email já existe
             String email = dados.get("email").toString();
             Query emailQuery = entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM cliente WHERE cli_email = ?"
+                "SELECT COUNT(*) FROM prestador WHERE pre_email = ?"
             );
             emailQuery.setParameter(1, email);
             Long emailCount = ((Number) emailQuery.getSingleResult()).longValue();
@@ -140,33 +140,33 @@ public class ClienteController {
                 dataNascimento = LocalDate.of(1990, 1, 1);
             }
 
-            // Criar cliente
-            Cliente cliente = new Cliente();
-            cliente.setNomeCompleto(dados.get("nomeCompleto").toString());
-            cliente.setCpf(cpf);
-            cliente.setDataNascimento(dataNascimento);
-            cliente.setSenha(dados.get("senha").toString());
-            cliente.setEnderecoId(enderecoId);
-            cliente.setEmail(email);
-            cliente.setTelefone(dados.get("telefone").toString().replaceAll("[^0-9() -]", ""));
+            // Criar prestador
+            Prestador prestador = new Prestador();
+            prestador.setNome(dados.get("nomeCompleto").toString());
+            prestador.setCpf(cpf);
+            prestador.setNascimento(dataNascimento);
+            prestador.setAreas(dados.getOrDefault("areasAtuacao", dados.getOrDefault("areas", "")).toString());
+            prestador.setExperiencia(dados.getOrDefault("experiencia", "").toString());
+            prestador.setCertificados(dados.getOrDefault("certificados", "").toString());
+            prestador.setSenha(dados.get("senha").toString());
+            prestador.setEnderecoId(enderecoId);
+            prestador.setEmail(email);
+            prestador.setTelefone(dados.get("telefone").toString().replaceAll("[^0-9() -]", ""));
 
-            Cliente clienteSalvo = clienteRepository.save(cliente);
+            Prestador prestadorSalvo = prestadorRepository.save(prestador);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("message", "Cliente cadastrado com sucesso");
-            response.put("cliente", clienteSalvo);
+            response.put("message", "Prestador cadastrado com sucesso");
+            response.put("prestador", prestadorSalvo);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", "Erro ao cadastrar cliente: " + e.getMessage());
+            response.put("message", "Erro ao cadastrar prestador: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 }
-
-
-
 
