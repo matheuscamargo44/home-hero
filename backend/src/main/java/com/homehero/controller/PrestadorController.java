@@ -14,11 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
-/**
- * Controller responsável pelas operações relacionadas a prestadores
- */
 @RestController
 @RequestMapping("/api/prestadores")
 @CrossOrigin(origins = "*")
@@ -30,129 +26,43 @@ public class PrestadorController {
     @PersistenceContext
     private EntityManager entityManager;
 
-    /**
-     * Endpoint para buscar um prestador pelo CPF
-     * Remove caracteres não numéricos do CPF antes de buscar
-     * 
-     * @param cpf CPF do prestador (pode conter pontos e traços)
-     * @return ResponseEntity com dados do prestador ou mensagem de erro
-     */
     @GetMapping("/cpf/{cpf}")
     public ResponseEntity<Map<String, Object>> getByCpf(@PathVariable String cpf) {
         try {
-            // Remove caracteres não numéricos do CPF
             String cpfLimpo = cpf.replaceAll("[^0-9]", "");
-            
-            Optional<Prestador> prestadorOpt = prestadorRepository.findByCpf(cpfLimpo);
-            
-            if (prestadorOpt.isPresent()) {
-                Prestador prestador = prestadorOpt.get();
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", true);
-                response.put("prestador", prestador);
-                return ResponseEntity.ok(response);
-            } else {
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", false);
-                response.put("message", "CPF não encontrado");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            }
+            return prestadorRepository.findByCpf(cpfLimpo)
+                .map(prestador -> {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("success", true);
+                    response.put("prestador", prestador);
+                    return ResponseEntity.ok(response);
+                })
+                .orElse(errorResponse("CPF não encontrado", HttpStatus.NOT_FOUND));
         } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "Erro ao buscar prestador: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return errorResponse("Erro ao buscar prestador: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    /**
-     * Endpoint para criar um novo prestador
-     * Cria primeiro o endereço e depois o prestador
-     * 
-     * @param dados Mapa contendo os dados do prestador e endereço
-     * @return ResponseEntity com o prestador criado ou mensagem de erro
-     */
     @PostMapping("/cadastro")
     @Transactional
     public ResponseEntity<Map<String, Object>> cadastrar(@RequestBody Map<String, Object> dados) {
         try {
-            // Validação de campos obrigatórios
-            if (dados.get("nomeCompleto") == null || dados.get("cpf") == null || 
-                dados.get("email") == null || dados.get("telefone") == null || 
-                dados.get("senha") == null) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", false);
-                response.put("message", "Campos obrigatórios: nomeCompleto, cpf, email, telefone, senha");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            if (!validarCampos(dados)) {
+                return errorResponse("Campos obrigatórios: nomeCompleto, cpf, email, telefone, senha", HttpStatus.BAD_REQUEST);
             }
 
-            // Verificar se CPF já existe
             String cpf = dados.get("cpf").toString().replaceAll("[^0-9]", "");
-            Optional<Prestador> prestadorExistente = prestadorRepository.findByCpf(cpf);
-            if (prestadorExistente.isPresent()) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", false);
-                response.put("message", "CPF já cadastrado");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            if (prestadorRepository.findByCpf(cpf).isPresent()) {
+                return errorResponse("CPF já cadastrado", HttpStatus.BAD_REQUEST);
             }
 
-            // Verificar se email já existe
             String email = dados.get("email").toString();
-            Query emailQuery = entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM prestador WHERE pre_email = ?"
-            );
-            emailQuery.setParameter(1, email);
-            Long emailCount = ((Number) emailQuery.getSingleResult()).longValue();
-            if (emailCount > 0) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", false);
-                response.put("message", "Email já cadastrado");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            if (emailExiste(email)) {
+                return errorResponse("Email já cadastrado", HttpStatus.BAD_REQUEST);
             }
 
-            // Criar endereço primeiro
-            String sqlEndereco = "INSERT INTO endereco (end_logradouro, end_numero, end_complemento, " +
-                                "end_bairro, end_cidade, end_uf, end_cep) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            Query queryEndereco = entityManager.createNativeQuery(sqlEndereco);
-            queryEndereco.setParameter(1, dados.getOrDefault("logradouro", "").toString());
-            queryEndereco.setParameter(2, dados.getOrDefault("numero", "").toString());
-            queryEndereco.setParameter(3, dados.getOrDefault("complemento", "").toString());
-            queryEndereco.setParameter(4, dados.getOrDefault("bairro", "").toString());
-            queryEndereco.setParameter(5, dados.getOrDefault("cidade", "").toString());
-            queryEndereco.setParameter(6, dados.getOrDefault("uf", "").toString());
-            queryEndereco.setParameter(7, dados.getOrDefault("cep", "").toString().replaceAll("[^0-9-]", ""));
-            queryEndereco.executeUpdate();
-
-            // Obter o ID do endereço criado
-            Query idQuery = entityManager.createNativeQuery("SELECT LAST_INSERT_ID()");
-            Integer enderecoId = ((Number) idQuery.getSingleResult()).intValue();
-
-            // Converter data de nascimento
-            LocalDate dataNascimento = null;
-            if (dados.get("dataNascimento") != null && !dados.get("dataNascimento").toString().isEmpty()) {
-                try {
-                    dataNascimento = LocalDate.parse(dados.get("dataNascimento").toString());
-                } catch (Exception e) {
-                    // Se falhar, usa data padrão
-                    dataNascimento = LocalDate.of(1990, 1, 1);
-                }
-            } else {
-                dataNascimento = LocalDate.of(1990, 1, 1);
-            }
-
-            // Criar prestador
-            Prestador prestador = new Prestador();
-            prestador.setNome(dados.get("nomeCompleto").toString());
-            prestador.setCpf(cpf);
-            prestador.setNascimento(dataNascimento);
-            prestador.setAreas(dados.getOrDefault("areasAtuacao", dados.getOrDefault("areas", "")).toString());
-            prestador.setExperiencia(dados.getOrDefault("experiencia", "").toString());
-            prestador.setCertificados(dados.getOrDefault("certificados", "").toString());
-            prestador.setSenha(dados.get("senha").toString());
-            prestador.setEnderecoId(enderecoId);
-            prestador.setEmail(email);
-            prestador.setTelefone(dados.get("telefone").toString().replaceAll("[^0-9() -]", ""));
-
+            Integer enderecoId = criarEndereco(dados);
+            Prestador prestador = criarPrestador(dados, cpf, email, enderecoId);
             Prestador prestadorSalvo = prestadorRepository.save(prestador);
 
             Map<String, Object> response = new HashMap<>();
@@ -160,13 +70,71 @@ public class PrestadorController {
             response.put("message", "Prestador cadastrado com sucesso");
             response.put("prestador", prestadorSalvo);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
         } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "Erro ao cadastrar prestador: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return errorResponse("Erro ao cadastrar prestador: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private boolean validarCampos(Map<String, Object> dados) {
+        return dados.get("nomeCompleto") != null && dados.get("cpf") != null &&
+               dados.get("email") != null && dados.get("telefone") != null && dados.get("senha") != null;
+    }
+
+    private boolean emailExiste(String email) {
+        Query query = entityManager.createNativeQuery("SELECT COUNT(*) FROM prestador WHERE pre_email = ?");
+        query.setParameter(1, email);
+        return ((Number) query.getSingleResult()).longValue() > 0;
+    }
+
+    private Integer criarEndereco(Map<String, Object> dados) {
+        String sql = "INSERT INTO endereco (end_logradouro, end_numero, end_complemento, end_bairro, end_cidade, end_uf, end_cep) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter(1, dados.getOrDefault("logradouro", "").toString());
+        query.setParameter(2, dados.getOrDefault("numero", "").toString());
+        query.setParameter(3, dados.getOrDefault("complemento", "").toString());
+        query.setParameter(4, dados.getOrDefault("bairro", "").toString());
+        query.setParameter(5, dados.getOrDefault("cidade", "").toString());
+        query.setParameter(6, dados.getOrDefault("uf", "").toString());
+        query.setParameter(7, dados.getOrDefault("cep", "").toString().replaceAll("[^0-9-]", ""));
+        query.executeUpdate();
+
+        Query idQuery = entityManager.createNativeQuery("SELECT LAST_INSERT_ID()");
+        return ((Number) idQuery.getSingleResult()).intValue();
+    }
+
+    private Prestador criarPrestador(Map<String, Object> dados, String cpf, String email, Integer enderecoId) {
+        LocalDate dataNascimento = parseDataNascimento(dados.get("dataNascimento"));
+        
+        Prestador prestador = new Prestador();
+        prestador.setNome(dados.get("nomeCompleto").toString());
+        prestador.setCpf(cpf);
+        prestador.setNascimento(dataNascimento);
+        prestador.setAreas(dados.getOrDefault("areasAtuacao", dados.getOrDefault("areas", "")).toString());
+        prestador.setExperiencia(dados.getOrDefault("experiencia", "").toString());
+        prestador.setCertificados(dados.getOrDefault("certificados", "").toString());
+        prestador.setSenha(dados.get("senha").toString());
+        prestador.setEnderecoId(enderecoId);
+        prestador.setEmail(email);
+        prestador.setTelefone(dados.get("telefone").toString().replaceAll("[^0-9() -]", ""));
+        return prestador;
+    }
+
+    private LocalDate parseDataNascimento(Object data) {
+        if (data != null && !data.toString().isEmpty()) {
+            try {
+                return LocalDate.parse(data.toString());
+            } catch (Exception e) {
+                return LocalDate.of(1990, 1, 1);
+            }
+        }
+        return LocalDate.of(1990, 1, 1);
+    }
+
+    private ResponseEntity<Map<String, Object>> errorResponse(String message, HttpStatus status) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("message", message);
+        return ResponseEntity.status(status).body(response);
     }
 }
 

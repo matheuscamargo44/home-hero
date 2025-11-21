@@ -28,23 +28,19 @@ public class DatabaseTestService {
     @Transactional(readOnly = true)
     public List<Map<String, Object>> executeView(String viewName) {
         try {
-            // Obter nomes das colunas usando INFORMATION_SCHEMA
             String columnNameSql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION";
             Query columnNameQuery = entityManager.createNativeQuery(columnNameSql);
             columnNameQuery.setParameter(1, viewName);
             @SuppressWarnings("unchecked")
             List<String> columnNames = columnNameQuery.getResultList();
             
-            // Executar a query completa
             String sql = "SELECT * FROM " + viewName;
             Query query = entityManager.createNativeQuery(sql);
             @SuppressWarnings("unchecked")
             List<Object[]> results = query.getResultList();
             
-            // Converter usando os nomes reais das colunas
             return convertToMapListWithColumnNames(results, columnNames);
         } catch (Exception e) {
-            // Fallback para método genérico se houver erro
             String sql = "SELECT * FROM " + viewName;
             Query query = entityManager.createNativeQuery(sql);
             @SuppressWarnings("unchecked")
@@ -65,20 +61,16 @@ public class DatabaseTestService {
         return mapList;
     }
 
-    // Usa NOT_SUPPORTED para suspender qualquer transação existente
-    // Procedures do MySQL gerenciam suas próprias transações
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public Map<String, Object> executeProcedure(String procedureName, Map<String, Object> parameters) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // Obter conexão JDBC através do Hibernate Session
             Session session = entityManager.unwrap(Session.class);
             return session.doReturningWork(new ReturningWork<Map<String, Object>>() {
                 @Override
                 public Map<String, Object> execute(Connection connection) {
                     CallableStatement callableStatement = null;
                     try {
-                        // Construir a chamada da procedure
                         LinkedHashMap<String, Object> orderedParams = new LinkedHashMap<>();
                         if (parameters != null && !parameters.isEmpty()) {
                             orderedParams.putAll(parameters);
@@ -95,7 +87,6 @@ public class DatabaseTestService {
                         
                         callableStatement = connection.prepareCall(sql.toString());
                         
-                        // Definir parâmetros
                         int paramIndex = 1;
                         for (Map.Entry<String, Object> entry : orderedParams.entrySet()) {
                             Object value = entry.getValue();
@@ -117,7 +108,6 @@ public class DatabaseTestService {
                             paramIndex++;
                         }
                         
-                        // Executar e obter resultados
                         boolean hasResults = callableStatement.execute();
                         List<Map<String, Object>> resultData = new ArrayList<>();
                         boolean returnedData = false;
@@ -126,7 +116,6 @@ public class DatabaseTestService {
                             if (hasResults) {
                                 ResultSet rs = callableStatement.getResultSet();
                                 if (rs != null) {
-                                    // Obter nomes das colunas dos metadados
                                     ResultSetMetaData metaData = rs.getMetaData();
                                     int columnCount = metaData.getColumnCount();
                                     List<String> columnNames = new ArrayList<>();
@@ -145,7 +134,6 @@ public class DatabaseTestService {
                                         columnNames.add(columnLabel);
                                     }
                                     
-                                    // Converter resultados usando os nomes reais das colunas
                                     while (rs.next()) {
                                         Map<String, Object> row = new HashMap<>();
                                         for (int i = 1; i <= columnCount; i++) {
@@ -177,11 +165,9 @@ public class DatabaseTestService {
                         }
                         return result;
                     } catch (Exception e) {
-                        e.printStackTrace();
                         Map<String, Object> errorResult = new HashMap<>();
                         errorResult.put("success", false);
-                        String errorMessage = extractErrorMessage(e);
-                        errorResult.put("message", "Erro ao executar procedure: " + errorMessage);
+                        errorResult.put("message", "Erro ao executar procedure: " + extractErrorMessage(e));
                         errorResult.put("data", new ArrayList<>());
                         return errorResult;
                     } finally {
@@ -190,16 +176,14 @@ public class DatabaseTestService {
                                 callableStatement.close();
                             }
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            // Ignorar erro ao fechar
                         }
                     }
                 }
             });
         } catch (Exception e) {
-            e.printStackTrace();
             response.put("success", false);
-            String errorMessage = extractErrorMessage(e);
-            response.put("message", "Erro ao executar procedure: " + errorMessage);
+            response.put("message", "Erro ao executar procedure: " + extractErrorMessage(e));
             response.put("data", new ArrayList<>());
             return response;
         }
@@ -209,8 +193,6 @@ public class DatabaseTestService {
     public Map<String, Object> testTrigger(String tableName, String operation) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // Os triggers são executados automaticamente pelo banco
-            // Aqui apenas verificamos se a tabela existe e retornamos sucesso
             String sql = "SELECT COUNT(*) FROM " + tableName;
             Query query = entityManager.createNativeQuery(sql);
             Object result = query.getSingleResult();
@@ -255,7 +237,6 @@ public class DatabaseTestService {
     @Transactional(readOnly = true)
     public Map<String, Object> getTriggerInfo(String triggerName) {
         try {
-            // Buscar informações específicas do trigger
             String sql = "SELECT TRIGGER_NAME, EVENT_MANIPULATION, EVENT_OBJECT_TABLE, ACTION_STATEMENT, ACTION_TIMING " +
                         "FROM INFORMATION_SCHEMA.TRIGGERS WHERE TRIGGER_SCHEMA = DATABASE() AND TRIGGER_NAME = ?";
             Query query = entityManager.createNativeQuery(sql);
@@ -319,22 +300,16 @@ public class DatabaseTestService {
     public Map<String, Object> executeTriggerAction(String triggerName, Map<String, Object> params) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // Mapear trigger para ação correspondente
             if (triggerName.contains("inserir_agendamento_registrar_status_inicial") || 
                 triggerName.contains("inserir_agendamento_notificar_prestador")) {
-                // Criar agendamento de teste
                 return createTestAgendamento(params);
             } else if (triggerName.contains("atualizar_agendamento_registrar_mudanca_de_status")) {
-                // Atualizar status de agendamento
                 return updateAgendamentoStatus(params);
             } else if (triggerName.contains("inserir_avaliacao_criar_notificacao")) {
-                // Criar avaliação
                 return createTestAvaliacao(params);
             } else if (triggerName.contains("inserir_pagamento_confirmado_criar_notificacao")) {
-                // Criar pagamento confirmado
                 return createTestPagamento(params);
             } else if (triggerName.contains("inserir_disputa_aberta_criar_notificacao")) {
-                // Criar disputa
                 return createTestDisputa(params);
             } else {
                 response.put("success", false);
@@ -350,7 +325,6 @@ public class DatabaseTestService {
     private Map<String, Object> createTestAgendamento(Map<String, Object> params) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // Buscar primeiro cliente, serviço e prestador disponíveis
             String sql = "SELECT cli_id FROM cliente LIMIT 1";
             Query query = entityManager.createNativeQuery(sql);
             Object cliId = query.getSingleResult();
@@ -367,7 +341,6 @@ public class DatabaseTestService {
             query = entityManager.createNativeQuery(sql);
             Object endId = query.getSingleResult();
             
-            // Inserir agendamento
             sql = "INSERT INTO agendamento_servico (cli_id, ser_id, pre_id, age_data, age_janela, end_id, age_status, age_valor, age_pago) " +
                   "VALUES (?, ?, ?, DATE_ADD(CURDATE(), INTERVAL 1 DAY), 'Manhã', ?, 'Agendado', 150.00, 0)";
             query = entityManager.createNativeQuery(sql);
@@ -377,19 +350,16 @@ public class DatabaseTestService {
             query.setParameter(4, endId);
             query.executeUpdate();
             
-            // Buscar o ID do agendamento criado
             sql = "SELECT LAST_INSERT_ID()";
             query = entityManager.createNativeQuery(sql);
             Object ageId = query.getSingleResult();
             
-            // Verificar se o trigger foi executado (histórico de status)
             sql = "SELECT * FROM historico_status_agendamento WHERE age_id = ?";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
             @SuppressWarnings("unchecked")
             List<Object[]> historico = query.getResultList();
             
-            // Verificar notificações criadas
             sql = "SELECT * FROM notificacao WHERE age_id = ? ORDER BY not_data DESC LIMIT 5";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
@@ -411,7 +381,6 @@ public class DatabaseTestService {
     private Map<String, Object> updateAgendamentoStatus(Map<String, Object> params) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // Buscar primeiro agendamento
             String sql = "SELECT age_id, age_status FROM agendamento_servico LIMIT 1";
             Query query = entityManager.createNativeQuery(sql);
             @SuppressWarnings("unchecked")
@@ -427,14 +396,12 @@ public class DatabaseTestService {
             String oldStatus = results.get(0)[1].toString();
             String newStatus = "Confirmado";
             
-            // Atualizar status
             sql = "UPDATE agendamento_servico SET age_status = ? WHERE age_id = ?";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, newStatus);
             query.setParameter(2, ageId);
             query.executeUpdate();
             
-            // Verificar histórico criado pelo trigger
             sql = "SELECT * FROM historico_status_agendamento WHERE age_id = ? ORDER BY his_data DESC LIMIT 1";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
@@ -457,7 +424,6 @@ public class DatabaseTestService {
     private Map<String, Object> createTestAvaliacao(Map<String, Object> params) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // Buscar primeiro agendamento com prestador
             String sql = "SELECT age_id, cli_id, pre_id FROM agendamento_servico WHERE pre_id IS NOT NULL LIMIT 1";
             Query query = entityManager.createNativeQuery(sql);
             @SuppressWarnings("unchecked")
@@ -473,7 +439,6 @@ public class DatabaseTestService {
             Object cliId = results.get(0)[1];
             Object preId = results.get(0)[2];
             
-            // Inserir avaliação
             sql = "INSERT INTO avaliacao (age_id, cli_id, pre_id, ava_nota, ava_coment, ava_data) " +
                   "VALUES (?, ?, ?, 5, 'Excelente serviço!', CURDATE())";
             query = entityManager.createNativeQuery(sql);
@@ -482,7 +447,6 @@ public class DatabaseTestService {
             query.setParameter(3, preId);
             query.executeUpdate();
             
-            // Verificar notificação criada pelo trigger
             sql = "SELECT * FROM notificacao WHERE age_id = ? AND not_tipo = 'Avaliacao' ORDER BY not_data DESC LIMIT 1";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
@@ -503,19 +467,16 @@ public class DatabaseTestService {
     private Map<String, Object> createTestPagamento(Map<String, Object> params) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // Buscar primeiro agendamento
             String sql = "SELECT age_id FROM agendamento_servico LIMIT 1";
             Query query = entityManager.createNativeQuery(sql);
             Object ageId = query.getSingleResult();
             
-            // Inserir pagamento confirmado
             sql = "INSERT INTO pagamento (age_id, pag_forma, pag_valor, pag_status, pag_ref, pag_data) " +
                   "VALUES (?, 'Cartão de Crédito', 150.00, 'Pago', CONCAT('TEST-', UNIX_TIMESTAMP()), CURDATE())";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
             query.executeUpdate();
             
-            // Verificar notificação criada pelo trigger
             sql = "SELECT * FROM notificacao WHERE age_id = ? AND not_tipo = 'Pagamento' ORDER BY not_data DESC LIMIT 1";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
@@ -536,7 +497,6 @@ public class DatabaseTestService {
     private Map<String, Object> createTestDisputa(Map<String, Object> params) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // Buscar primeiro agendamento
             String sql = "SELECT age_id, cli_id, pre_id FROM agendamento_servico LIMIT 1";
             Query query = entityManager.createNativeQuery(sql);
             @SuppressWarnings("unchecked")
@@ -552,7 +512,6 @@ public class DatabaseTestService {
             Object cliId = results.get(0)[1];
             Object preId = results.get(0)[2];
             
-            // Inserir disputa aberta
             sql = "INSERT INTO disputa_reembolso (age_id, cli_id, pre_id, dsp_motivo, dsp_status, dsp_valor, dsp_abertura) " +
                   "VALUES (?, ?, ?, 'Serviço não realizado conforme combinado', 'Aberta', 150.00, CURDATE())";
             query = entityManager.createNativeQuery(sql);
@@ -561,7 +520,6 @@ public class DatabaseTestService {
             query.setParameter(3, preId);
             query.executeUpdate();
             
-            // Verificar notificação criada pelo trigger
             sql = "SELECT * FROM notificacao WHERE age_id = ? ORDER BY not_data DESC LIMIT 5";
             query = entityManager.createNativeQuery(sql);
             query.setParameter(1, ageId);
