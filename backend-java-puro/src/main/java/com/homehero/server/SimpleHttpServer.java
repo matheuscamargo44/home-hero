@@ -18,6 +18,7 @@ public class SimpleHttpServer {
     private PrestadorController prestadorController = new PrestadorController();
     private ServicoController servicoController = new ServicoController();
     private AdminController adminController = new AdminController();
+    private com.homehero.controller.DatabaseTestController databaseTestController = new com.homehero.controller.DatabaseTestController();
 
     public void iniciar() throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
@@ -79,6 +80,69 @@ public class SimpleHttpServer {
             if ("POST".equals(exchange.getRequestMethod())) {
                 String token = exchange.getRequestHeaders().getFirst("Authorization");
                 return adminController.verificarToken(token);
+            }
+            return "{\"success\":false,\"message\":\"Método não permitido\"}";
+        }));
+        
+        server.createContext("/api/database-test/views", new Handler((exchange, body) -> {
+            if ("GET".equals(exchange.getRequestMethod())) {
+                return databaseTestController.getViews();
+            }
+            return "{\"success\":false,\"message\":\"Método não permitido\"}";
+        }));
+        
+        server.createContext("/api/database-test/procedures", new Handler((exchange, body) -> {
+            if ("GET".equals(exchange.getRequestMethod())) {
+                return databaseTestController.getProcedures();
+            }
+            return "{\"success\":false,\"message\":\"Método não permitido\"}";
+        }));
+        
+        server.createContext("/api/database-test/triggers", new Handler((exchange, body) -> {
+            if ("GET".equals(exchange.getRequestMethod())) {
+                return databaseTestController.getTriggers();
+            }
+            return "{\"success\":false,\"message\":\"Método não permitido\"}";
+        }));
+        
+        server.createContext("/api/database-test/view/", new Handler((exchange, body) -> {
+            if ("POST".equals(exchange.getRequestMethod())) {
+                String path = exchange.getRequestURI().getPath();
+                String viewName = path.substring(path.lastIndexOf("/") + 1);
+                return databaseTestController.testView(viewName);
+            }
+            return "{\"success\":false,\"message\":\"Método não permitido\"}";
+        }));
+        
+        server.createContext("/api/database-test/procedure/", new Handler((exchange, body) -> {
+            if ("POST".equals(exchange.getRequestMethod())) {
+                String path = exchange.getRequestURI().getPath();
+                String procedureName = path.substring(path.lastIndexOf("/") + 1);
+                return databaseTestController.testProcedure(procedureName, body);
+            }
+            return "{\"success\":false,\"message\":\"Método não permitido\"}";
+        }));
+        
+        server.createContext("/api/database-test/trigger/", new Handler((exchange, body) -> {
+            String path = exchange.getRequestURI().getPath();
+            String triggerName = path.substring(path.lastIndexOf("/") + 1);
+            
+            if ("GET".equals(exchange.getRequestMethod())) {
+                return databaseTestController.getTriggerInfo(triggerName);
+            } else if ("POST".equals(exchange.getRequestMethod())) {
+                String query = exchange.getRequestURI().getQuery();
+                if (query != null && query.contains("execute")) {
+                    return databaseTestController.executeTriggerAction(triggerName, body);
+                } else {
+                    String operation = "SELECT";
+                    if (query != null && query.contains("operation=")) {
+                        operation = query.substring(query.indexOf("operation=") + 10);
+                        if (operation.contains("&")) {
+                            operation = operation.substring(0, operation.indexOf("&"));
+                        }
+                    }
+                    return databaseTestController.testTrigger(triggerName, operation);
+                }
             }
             return "{\"success\":false,\"message\":\"Método não permitido\"}";
         }));
