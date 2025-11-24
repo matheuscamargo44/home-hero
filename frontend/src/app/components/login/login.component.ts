@@ -187,7 +187,10 @@ export class LoginComponent implements OnInit {
             this.router.navigate(['/admin']);
           } else if (userType === 'cliente') {
             this.authService.setCliente(response.cliente, response.token);
-          this.router.navigate(['/']);
+            this.router.navigate(['/']);
+          } else if (userType === 'prestador') {
+            this.authService.setPrestador(response.prestador, response.token);
+            this.router.navigate(['/']);
           } else {
             this.errorMessage = 'Tipo de usuário não reconhecido';
             this.isLoading = false;

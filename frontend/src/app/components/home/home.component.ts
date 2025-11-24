@@ -4,7 +4,6 @@ import { HeroComponent } from '../hero/hero.component';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
 import { SmoothScrollService } from '../../services/smooth-scroll.service';
-import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-home',
@@ -28,7 +27,6 @@ import { ThemeService } from '../../services/theme.service';
 })
 export class HomeComponent implements OnInit {
   private smoothScrollService = inject(SmoothScrollService);
-  private themeService = inject(ThemeService);
 
   ngOnInit(): void {
     this.smoothScrollService.init();

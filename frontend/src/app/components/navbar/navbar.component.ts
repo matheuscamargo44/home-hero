@@ -1,7 +1,6 @@
 import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { SmoothScrollService } from '../../services/smooth-scroll.service';
 import { ThemeService } from '../../services/theme.service';
 
 @Component({
@@ -137,7 +136,6 @@ import { ThemeService } from '../../services/theme.service';
 export class NavbarComponent implements OnInit {
   isScrolled = false;
   isMobileMenuOpen = false;
-  smoothScrollService = inject(SmoothScrollService);
   themeService = inject(ThemeService);
 
   ngOnInit(): void {
@@ -155,11 +153,5 @@ export class NavbarComponent implements OnInit {
 
   toggleMobileMenu(): void {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
-  }
-
-  scrollToSection(section: string, event: Event): void {
-    event.preventDefault();
-    this.isMobileMenuOpen = false;
-    this.smoothScrollService.scrollTo(`#${section}`, { offset: -80 });
   }
 }

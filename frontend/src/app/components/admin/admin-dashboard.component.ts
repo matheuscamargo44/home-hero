@@ -34,28 +34,14 @@ import { AuthService } from '../../services/auth.service';
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <a 
-              routerLink="/admin/database-test"
-              class="block bg-white dark:bg-dark-surface rounded-lg shadow-sm border border-slate-200 dark:border-primary-800 p-6 hover:shadow-md transition-shadow cursor-pointer"
-            >
-              <div class="flex items-center mb-4">
-                <div class="p-3 bg-accent-100 dark:bg-accent-900/30 rounded-lg">
-                  <svg class="w-6 h-6 text-accent-600 dark:text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
-                  </svg>
-                </div>
-                <h3 class="ml-4 text-lg font-semibold text-primary-900 dark:text-white">
-                  Banco de Dados
-                </h3>
-              </div>
-              <p class="text-slate-600 dark:text-slate-400 text-sm">
-                Gerencie e teste views, procedures e triggers do banco
-              </p>
-            </a>
+          <div class="mt-6 p-6 bg-white dark:bg-dark-surface rounded-lg shadow-sm border border-slate-200 dark:border-primary-800">
+            <h2 class="text-2xl font-display font-bold text-primary-900 dark:text-white mb-2">
+              Área administrativa
+            </h2>
+            <p class="text-slate-600 dark:text-slate-400">
+              Este painel será usado para gerenciar usuários, serviços e agendamentos.
+            </p>
           </div>
-
-          <router-outlet></router-outlet>
         </div>
       </main>
 
