@@ -1,10 +1,10 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core'; // Importa o decorador de componente.
+import { CommonModule } from '@angular/common'; // Necessário para bindings básicos.
 
-@Component({
-  selector: 'app-footer',
-  standalone: true,
-  imports: [CommonModule],
+@Component({ // Declaração do componente de rodapé.
+  selector: 'app-footer', // Tag utilizada em outros templates.
+  standalone: true, // Componente independente de módulos.
+  imports: [CommonModule], // Disponibiliza diretivas como ngIf, ngFor.
   template: `
     <footer class="bg-primary-900 dark:bg-dark-bg text-slate-300 dark:text-slate-400 mt-auto">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -29,6 +29,6 @@ import { CommonModule } from '@angular/common';
   `,
   styles: []
 })
-export class FooterComponent {
-  currentYear = new Date().getFullYear();
+export class FooterComponent { // Classe que controla o rodapé.
+  currentYear = new Date().getFullYear(); // Exibe o ano corrente no template.
 }

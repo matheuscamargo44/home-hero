@@ -1,14 +1,14 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
-import { NavbarComponent } from '../navbar/navbar.component';
-import { ClienteService } from '../../services/cliente.service';
+import { Component, OnInit, inject } from '@angular/core'; // APIs para criar o componente e injetar dependências.
+import { CommonModule } from '@angular/common'; // Diretivas padrão do Angular.
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'; // Utilidades do formulário reativo.
+import { Router, RouterModule } from '@angular/router'; // Navegação e routerLink.
+import { NavbarComponent } from '../navbar/navbar.component'; // Navbar exibida no topo.
+import { ClienteService } from '../../services/cliente.service'; // Serviço responsável por chamar o backend.
 
-@Component({
-  selector: 'app-register-cliente',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent],
+@Component({ // Declara o componente de cadastro de cliente.
+  selector: 'app-register-cliente', // Tag usada pela rota /register/cliente.
+  standalone: true, // Não depende de um módulo específico.
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent], // Módulos usados no template.
   template: `
     <div class="min-h-screen bg-white dark:bg-dark-bg">
       <app-navbar></app-navbar>
@@ -376,16 +376,16 @@ import { ClienteService } from '../../services/cliente.service';
   `,
   styles: []
 })
-export class RegisterClienteComponent implements OnInit {
-  registerForm!: FormGroup;
-  isLoading = false;
-  errorMessage = '';
+export class RegisterClienteComponent implements OnInit { // Controla o formulário de cadastro.
+  registerForm!: FormGroup; // Formulário reativo com todos os campos.
+  isLoading = false; // Flag que exibe spinner no botão.
+  errorMessage = ''; // Mensagem de erro exibida no topo do formulário.
   
-  private fb = inject(FormBuilder);
-  private router = inject(Router);
-  private clienteService = inject(ClienteService);
+  private fb = inject(FormBuilder); // Injeção do FormBuilder.
+  private router = inject(Router); // Navegação após o cadastro.
+  private clienteService = inject(ClienteService); // Serviço que chama o backend.
 
-  ngOnInit(): void {
+  ngOnInit(): void { // Inicializa o formulário quando o componente é carregado.
     this.registerForm = this.fb.group({
       nomeCompleto: ['', [Validators.required]],
       cpf: ['', [Validators.required, this.cpfValidator]],
@@ -402,10 +402,10 @@ export class RegisterClienteComponent implements OnInit {
       formaPagamento: [''],
       senha: ['', [Validators.required, Validators.minLength(6)]],
       confirmarSenha: ['', [Validators.required]]
-    }, { validators: this.passwordMatchValidator });
+    }, { validators: this.passwordMatchValidator }); // Validador que compara as senhas.
   }
 
-  cpfValidator(control: any) {
+  cpfValidator(control: any) { // Validador simples de CPF (checa apenas quantidade de dígitos).
     const cpf = control.value?.replace(/\D/g, '');
     if (!cpf || cpf.length !== 11) {
       return { invalidCpf: true };
@@ -413,7 +413,7 @@ export class RegisterClienteComponent implements OnInit {
     return null;
   }
 
-  passwordMatchValidator(form: FormGroup) {
+  passwordMatchValidator(form: FormGroup) { // Validador que garante que as senhas coincidam.
     const senha = form.get('senha');
     const confirmarSenha = form.get('confirmarSenha');
     if (senha && confirmarSenha && senha.value !== confirmarSenha.value) {
@@ -423,7 +423,7 @@ export class RegisterClienteComponent implements OnInit {
     return null;
   }
 
-  formatCPF(event: any): void {
+  formatCPF(event: any): void { // Aplica máscara ao digitar o CPF.
     let value = event.target.value.replace(/\D/g, '');
     if (value.length <= 11) {
       value = value.replace(/(\d{3})(\d)/, '$1.$2');
@@ -433,7 +433,7 @@ export class RegisterClienteComponent implements OnInit {
     }
   }
 
-  formatPhone(event: any): void {
+  formatPhone(event: any): void { // Aplica máscara ao telefone.
     let value = event.target.value.replace(/\D/g, '');
     if (value.length <= 11) {
       value = value.replace(/(\d{2})(\d)/, '($1) $2');
@@ -442,7 +442,7 @@ export class RegisterClienteComponent implements OnInit {
     }
   }
 
-  formatCEP(event: any): void {
+  formatCEP(event: any): void { // Aplica máscara ao CEP.
     let value = event.target.value.replace(/\D/g, '');
     if (value.length <= 8) {
       value = value.replace(/(\d{5})(\d)/, '$1-$2');
@@ -450,22 +450,22 @@ export class RegisterClienteComponent implements OnInit {
     }
   }
 
-  onSubmit(): void {
-    if (this.registerForm.invalid) {
+  onSubmit(): void { // Handler do submit.
+    if (this.registerForm.invalid) { // Não continua se houver campos inválidos.
       return;
     }
 
-    this.isLoading = true;
-    this.errorMessage = '';
+    this.isLoading = true; // Exibe loading.
+    this.errorMessage = ''; // Reseta mensagens anteriores.
 
-    const formValue = this.registerForm.value;
+    const formValue = this.registerForm.value; // Captura o payload completo.
     
-    this.clienteService.cadastrar(formValue).subscribe({
+    this.clienteService.cadastrar(formValue).subscribe({ // Chama o backend.
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
           alert('Conta criada com sucesso!');
-          this.router.navigate(['/login']);
+          this.router.navigate(['/login']); // Redireciona para o login.
         } else {
           this.errorMessage = response.message || 'Erro ao criar conta';
         }

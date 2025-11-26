@@ -1,14 +1,14 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
-import { NavbarComponent } from '../navbar/navbar.component';
-import { AuthService } from '../../services/auth.service';
+import { Component, OnInit, inject } from '@angular/core'; // API básica para criar componentes.
+import { CommonModule } from '@angular/common'; // Diretivas comuns do Angular.
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'; // Construtor de formulários reativos.
+import { Router, RouterModule } from '@angular/router'; // Navegação programática e routerLink.
+import { NavbarComponent } from '../navbar/navbar.component'; // Navbar reutilizado na tela de login.
+import { AuthService } from '../../services/auth.service'; // Serviço responsável pelas chamadas de autenticação.
 
-@Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent],
+@Component({ // Declaração do componente de login.
+  selector: 'app-login', // Tag usada nas rotas.
+  standalone: true, // Componente independente de módulos.
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent], // Módulos e componentes utilizados.
   template: `
     <div class="min-h-screen bg-white dark:bg-dark-bg">
       <app-navbar></app-navbar>
@@ -134,73 +134,73 @@ import { AuthService } from '../../services/auth.service';
   `,
   styles: []
 })
-export class LoginComponent implements OnInit {
-  loginForm!: FormGroup;
-  isLoading = false;
-  errorMessage = '';
-  isEmail = false;
+export class LoginComponent implements OnInit { // Classe que controla o formulário.
+  loginForm!: FormGroup; // Formulário reativo.
+  isLoading = false; // Flag usada para desabilitar o botão/enviar spinner.
+  errorMessage = ''; // Mensagem de erro apresentada ao usuário.
+  isEmail = false; // Indica se o campo está em formato de e-mail.
   
-  private fb = inject(FormBuilder);
-  private router = inject(Router);
-  private authService = inject(AuthService);
+  private fb = inject(FormBuilder); // Injeção do FormBuilder via API funcional.
+  private router = inject(Router); // Navegação programática pós-login.
+  private authService = inject(AuthService); // Serviço que faz as requisições de login.
 
-  ngOnInit(): void {
+  ngOnInit(): void { // Inicializa o formulário quando o componente é criado.
     this.loginForm = this.fb.group({
-      identifier: ['', [Validators.required]],
-      password: ['', [Validators.required]],
-      rememberMe: [false]
+      identifier: ['', [Validators.required]], // Campo obrigatório (email ou CPF).
+      password: ['', [Validators.required]], // Campo obrigatório para a senha.
+      rememberMe: [false] // Checkbox opcional.
     });
   }
 
-  onIdentifierInput(event: any): void {
-    const value = event.target.value;
-    this.isEmail = value.includes('@');
+  onIdentifierInput(event: any): void { // Formata o CPF dinamicamente e detecta e-mail.
+    const value = event.target.value; // Conteúdo atual do campo.
+    this.isEmail = value.includes('@'); // Considera e-mail quando há @.
     
-    if (!this.isEmail && value) {
-      let cpf = value.replace(/\D/g, '');
-      if (cpf.length <= 11) {
+    if (!this.isEmail && value) { // Apenas formata se for CPF.
+      let cpf = value.replace(/\D/g, ''); // Remove caracteres não numéricos.
+      if (cpf.length <= 11) { // Aplica máscara enquanto digita.
         cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
         cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
         cpf = cpf.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-        this.loginForm.patchValue({ identifier: cpf }, { emitEvent: false });
+        this.loginForm.patchValue({ identifier: cpf }, { emitEvent: false }); // Atualiza o campo sem disparar novos eventos.
       }
     }
   }
 
-  onSubmit(): void {
-    if (this.loginForm.invalid) {
+  onSubmit(): void { // Handler do submit do formulário.
+    if (this.loginForm.invalid) { // Evita submissão se houver campos inválidos.
       return;
     }
 
-    this.isLoading = true;
-    this.errorMessage = '';
+    this.isLoading = true; // Exibe spinner.
+    this.errorMessage = ''; // Limpa mensagens anteriores.
 
-    const { identifier, password } = this.loginForm.value;
+    const { identifier, password } = this.loginForm.value; // Desestrutura os valores do formulário.
 
-    this.authService.login(identifier, password).subscribe({
-      next: (response) => {
-        if (response.success) {
-          const userType = response.userType;
+    this.authService.login(identifier, password).subscribe({ // Chama o backend.
+      next: (response) => { // Sucesso na requisição.
+        if (response.success) { // Backend confirmou o login.
+          const userType = response.userType; // Identifica o tipo de usuário.
           
-          if (userType === 'admin') {
+          if (userType === 'admin') { // Fluxo para admin.
             this.authService.setAdmin(response.admin, response.token);
             this.router.navigate(['/admin']);
-          } else if (userType === 'cliente') {
+          } else if (userType === 'cliente') { // Fluxo para cliente.
             this.authService.setCliente(response.cliente, response.token);
             this.router.navigate(['/']);
-          } else if (userType === 'prestador') {
+          } else if (userType === 'prestador') { // Fluxo para prestador.
             this.authService.setPrestador(response.prestador, response.token);
             this.router.navigate(['/']);
-          } else {
+          } else { // Caso inesperado.
             this.errorMessage = 'Tipo de usuário não reconhecido';
             this.isLoading = false;
           }
-        } else {
+        } else { // Backend retornou sucesso=false.
           this.errorMessage = response.message || 'Email/CPF ou senha inválidos';
           this.isLoading = false;
         }
       },
-      error: (err) => {
+      error: (err) => { // Erros de rede ou HTTP.
         if (err.status === 0) {
           this.errorMessage = 'Erro ao conectar com o servidor. Verifique se o backend está rodando.';
         } else if (err.status === 401) {
@@ -208,7 +208,7 @@ export class LoginComponent implements OnInit {
         } else {
           this.errorMessage = 'Erro ao fazer login. Tente novamente.';
         }
-        this.isLoading = false;
+        this.isLoading = false; // Sempre reabilita o botão.
       }
     });
   }

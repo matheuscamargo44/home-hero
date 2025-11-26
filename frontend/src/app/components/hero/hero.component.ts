@@ -1,12 +1,12 @@
-import { Component, AfterViewInit, ElementRef, ViewChild, inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { gsap } from 'gsap';
+import { Component, AfterViewInit, ElementRef, ViewChild, inject, PLATFORM_ID } from '@angular/core'; // Importa APIs básicas do Angular.
+import { CommonModule, isPlatformBrowser } from '@angular/common'; // CommonModule expõe diretivas e o helper detecta o ambiente.
+import { RouterModule } from '@angular/router'; // Necessário para o uso de routerLink no template.
+import { gsap } from 'gsap'; // Biblioteca de animações usada neste componente.
 
-@Component({
-  selector: 'app-hero',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
+@Component({ // Configuração do componente hero.
+  selector: 'app-hero', // Tag utilizada no template da home.
+  standalone: true, // Permite usar o componente sem declarar em um módulo.
+  imports: [CommonModule, RouterModule], // Módulos auxiliares usados pelo template.
   template: `
     <section
       id="home"
@@ -70,40 +70,40 @@ import { gsap } from 'gsap';
   `,
   styles: []
 })
-export class HeroComponent implements AfterViewInit {
-  @ViewChild('logo', { static: false }) logo!: ElementRef<HTMLDivElement>;
-  @ViewChild('headline', { static: false }) headline!: ElementRef<HTMLHeadingElement>;
-  @ViewChild('subheadline', { static: false }) subheadline!: ElementRef<HTMLParagraphElement>;
-  @ViewChild('ctaButtons', { static: false }) ctaButtons!: ElementRef<HTMLDivElement>;
+export class HeroComponent implements AfterViewInit { // Componente que controla o banner animado.
+  @ViewChild('logo', { static: false }) logo!: ElementRef<HTMLDivElement>; // Referência ao container do logo.
+  @ViewChild('headline', { static: false }) headline!: ElementRef<HTMLHeadingElement>; // Referência ao título principal.
+  @ViewChild('subheadline', { static: false }) subheadline!: ElementRef<HTMLParagraphElement>; // Referência ao subtítulo.
+  @ViewChild('ctaButtons', { static: false }) ctaButtons!: ElementRef<HTMLDivElement>; // Referência ao bloco de botões.
 
-  private platformId = inject(PLATFORM_ID);
+  private platformId = inject(PLATFORM_ID); // Injeta o identificador da plataforma (server/browser).
 
-  ngAfterViewInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      this.initAnimations();
+  ngAfterViewInit(): void { // Hook disparado depois que o template é renderizado.
+    if (isPlatformBrowser(this.platformId)) { // Evita rodar GSAP no lado do servidor.
+      this.initAnimations(); // Configura as animações apenas no browser.
     }
   }
 
-  private initAnimations(): void {
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+  private initAnimations(): void { // Encapsula a timeline GSAP.
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } }); // Timeline com easing padrão.
 
-    tl.from(this.logo.nativeElement.querySelector('img'), {
+    tl.from(this.logo.nativeElement.querySelector('img'), { // Anima o logo.
       opacity: 0,
       scale: 0.8,
       duration: 0.8
     })
-    .from(this.headline.nativeElement.children, {
+    .from(this.headline.nativeElement.children, { // Anima cada linha do título.
       opacity: 0,
       y: 30,
       duration: 0.8,
       stagger: 0.2
     }, '-=0.4')
-    .from(this.subheadline.nativeElement, {
+    .from(this.subheadline.nativeElement, { // Anima o subtítulo.
       opacity: 0,
       y: 20,
       duration: 0.6
     }, '-=0.4')
-    .from(this.ctaButtons.nativeElement.children, {
+    .from(this.ctaButtons.nativeElement.children, { // Anima os botões.
       opacity: 0,
       y: 20,
       duration: 0.5,

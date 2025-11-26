@@ -1,12 +1,12 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { NavbarComponent } from '../navbar/navbar.component';
+import { Component } from '@angular/core'; // Decorador base de componentes.
+import { CommonModule } from '@angular/common'; // Diretivas como ngIf/ngFor.
+import { RouterModule } from '@angular/router'; // Para usar routerLink nos cards.
+import { NavbarComponent } from '../navbar/navbar.component'; // Navbar exibida no topo da página.
 
-@Component({
-  selector: 'app-register-type',
-  standalone: true,
-  imports: [CommonModule, RouterModule, NavbarComponent],
+@Component({ // Declaração do componente de seleção de tipo.
+  selector: 'app-register-type', // Tag usada pela rota /register.
+  standalone: true, // Componente independente.
+  imports: [CommonModule, RouterModule, NavbarComponent], // Dependências utilizadas no template.
   template: `
     <div class="min-h-screen bg-white dark:bg-dark-bg">
       <app-navbar></app-navbar>
@@ -97,5 +97,5 @@ import { NavbarComponent } from '../navbar/navbar.component';
   `,
   styles: []
 })
-export class RegisterTypeComponent {}
+export class RegisterTypeComponent {} // Componente puramente visual, sem lógica adicional.
 

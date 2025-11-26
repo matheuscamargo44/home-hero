@@ -1,15 +1,15 @@
-package com.homehero.repository;
+package com.homehero.repository; // Pacote com os repositórios Spring Data.
 
-import com.homehero.model.Servico;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import com.homehero.model.Servico; // Entidade Servico manipulada por este repositório.
+import org.springframework.data.jpa.repository.JpaRepository; // Interface base do Spring Data.
+import org.springframework.stereotype.Repository; // Marca a interface como componente Spring.
 
-import java.util.List;
+import java.util.List; // Usado para retornar listas de serviços.
 
-@Repository
-public interface ServicoRepository extends JpaRepository<Servico, Integer> {
-    List<Servico> findByAtivoTrue();
-}
+@Repository // Habilita a detecção automática pelo Spring.
+public interface ServicoRepository extends JpaRepository<Servico, Integer> { // Repositório com operações de CRUD padrão.
+    List<Servico> findByAtivoTrue(); // Consulta todos os serviços que estão marcados como ativos.
+} // Fim da interface.
 
 
 

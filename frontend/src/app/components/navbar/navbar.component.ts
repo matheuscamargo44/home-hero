@@ -1,12 +1,12 @@
-import { Component, HostListener, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { ThemeService } from '../../services/theme.service';
+import { Component, HostListener, inject, OnInit } from '@angular/core'; // Importa decoradores e helpers básicos.
+import { CommonModule } from '@angular/common'; // Disponibiliza diretivas padrões.
+import { RouterModule } from '@angular/router'; // Necessário para routerLink.
+import { ThemeService } from '../../services/theme.service'; // Serviço que alterna o tema claro/escuro.
 
-@Component({
-  selector: 'app-navbar',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
+@Component({ // Declaração do componente de navegação.
+  selector: 'app-navbar', // Tag usada nos templates.
+  standalone: true, // Não depende de módulo externo.
+  imports: [CommonModule, RouterModule], // Módulos utilizados no template.
   template: `
     <nav 
       [class]="'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ' + (isScrolled ? (themeService.isDark() ? 'bg-dark-bg/95 backdrop-blur-md shadow-sm' : 'bg-white/95 backdrop-blur-md shadow-sm') : 'bg-transparent')"
@@ -133,25 +133,25 @@ import { ThemeService } from '../../services/theme.service';
   `,
   styles: []
 })
-export class NavbarComponent implements OnInit {
-  isScrolled = false;
-  isMobileMenuOpen = false;
-  themeService = inject(ThemeService);
+export class NavbarComponent implements OnInit { // Classe que controla o comportamento do navbar.
+  isScrolled = false; // Flag que altera o estilo quando há scroll.
+  isMobileMenuOpen = false; // Flag que mostra/oculta o menu mobile.
+  themeService = inject(ThemeService); // Injeta o serviço de tema usando API funcional.
 
-  ngOnInit(): void {
-    // Inicialização do componente
+  ngOnInit(): void { // Hook executado na inicialização.
+    // Sem lógica adicional, o estado inicial já está definido nas propriedades.
   }
 
-  toggleTheme(): void {
+  toggleTheme(): void { // Alterna entre tema claro e escuro.
     this.themeService.toggleTheme();
   }
 
-  @HostListener('window:scroll', [])
-  onWindowScroll(): void {
+  @HostListener('window:scroll', []) // Escuta o evento de scroll da janela.
+  onWindowScroll(): void { // Atualiza a flag com base na posição de scroll.
     this.isScrolled = window.scrollY > 50;
   }
 
-  toggleMobileMenu(): void {
+  toggleMobileMenu(): void { // Abre/fecha o menu no mobile.
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
   }
 }

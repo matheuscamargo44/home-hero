@@ -1,139 +1,64 @@
-package com.homehero.controller;
+package com.homehero.controller; // Define o pacote em que o controlador está localizado.
 
-import com.homehero.model.Cliente;
-import com.homehero.repository.ClienteRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import com.homehero.model.procedure.ClienteProcedureRequest; // DTO usado para enviar parâmetros à procedure inserir_cliente.
+import com.homehero.model.view.ClienteView; // Record que representa cada linha da view_dados_de_clientes.
+import com.homehero.repository.jdbc.ClienteJdbcRepository; // Repositório JDBC simples responsável por falar com o banco.
+import jakarta.validation.Valid; // Faz a validação automática do corpo da requisição.
+import org.springframework.dao.DataAccessException; // Classe de erro usada para capturar falhas do JDBC.
+import org.springframework.http.HttpStatus; // Enum com os status HTTP que serão retornados.
+import org.springframework.http.ResponseEntity; // Wrapper para montar respostas HTTP completas.
+import org.springframework.web.bind.annotation.CrossOrigin; // Anotação que habilita CORS.
+import org.springframework.web.bind.annotation.GetMapping; // Indica que um método responde a GET.
+import org.springframework.web.bind.annotation.PostMapping; // Indica que um método responde a POST.
+import org.springframework.web.bind.annotation.RequestBody; // Diz ao Spring para desserializar o corpo da requisição.
+import org.springframework.web.bind.annotation.RequestMapping; // Define o prefixo das rotas do controlador.
+import org.springframework.web.bind.annotation.RestController; // Torna a classe um controlador REST.
 
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List; // Representa uma lista de elementos.
+import java.util.Map; // Estrutura chave-valor usada para respostas simples.
 
-@RestController
-@RequestMapping("/api/clientes")
-@CrossOrigin(origins = "*")
-public class ClienteController {
+@RestController // Informa ao Spring que esta classe trata requisições HTTP.
+@RequestMapping("/api/clientes") // Define que todos os endpoints começam com /api/clientes.
+@CrossOrigin(origins = "*") // Permite que qualquer domínio chame estas rotas (útil para demos).
+public class ClienteController { // Início da classe ClienteController.
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteJdbcRepository clienteJdbcRepository; // Guarda a referência do repositório JDBC usado pelos métodos.
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    public ClienteController(ClienteJdbcRepository clienteJdbcRepository) { // Construtor que recebe o repositório por injeção de dependência.
+        this.clienteJdbcRepository = clienteJdbcRepository; // Armazena o repositório em um campo para uso posterior.
+    } // Fim do construtor.
 
-    @GetMapping("/cpf/{cpf}")
-    public ResponseEntity<Map<String, Object>> getByCpf(@PathVariable String cpf) {
-        try {
-            String cpfLimpo = cpf.replaceAll("[^0-9]", "");
-            return clienteRepository.findByCpf(cpfLimpo)
-                .map(cliente -> {
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("success", true);
-                    response.put("cliente", cliente);
-                    return ResponseEntity.ok(response);
-                })
-                .orElse(errorResponse("CPF não encontrado", HttpStatus.NOT_FOUND));
-        } catch (Exception e) {
-            return errorResponse("Erro ao buscar cliente: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+    @PostMapping("/procedure") // Define o endpoint POST /api/clientes/procedure.
+    public ResponseEntity<Map<String, Object>> inserirViaProcedure( // Assinatura do método que retornará um ResponseEntity com um Map.
+        @Valid @RequestBody ClienteProcedureRequest request // Desserializa e valida o JSON enviado pelo cliente.
+    ) { // Início do método inserirViaProcedure.
+        try { // Inicia o bloco protegido contra exceções do banco.
+            clienteJdbcRepository.inserirCliente(request); // Delegação direta para a procedure inserir_cliente.
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of( // Retorna HTTP 201 com um corpo simples.
+                "success", true, // Chave que indica sucesso.
+                "message", "Cliente inserido via procedure." // Mensagem exibida ao usuário.
+            )); // Fim da construção da resposta de sucesso.
+        } catch (DataAccessException e) { // Captura qualquer problema vindo da camada JDBC/MySQL.
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of( // Retorna HTTP 500 caso haja falha.
+                "success", false, // Indica que a operação falhou.
+                "message", "Erro ao executar inserir_cliente: " + e.getMessage() // Apresenta a mensagem de erro para facilitar o diagnóstico.
+            )); // Fim da resposta de erro.
+        } // Fim do bloco try/catch.
+    } // Fim do método inserirViaProcedure.
 
-    @PostMapping("/cadastro")
-    @Transactional
-    public ResponseEntity<Map<String, Object>> cadastrar(@RequestBody Map<String, Object> dados) {
-        try {
-            if (!validarCampos(dados)) {
-                return errorResponse("Campos obrigatórios: nomeCompleto, cpf, email, telefone, senha", HttpStatus.BAD_REQUEST);
-            }
-
-            String cpf = dados.get("cpf").toString().replaceAll("[^0-9]", "");
-            if (clienteRepository.findByCpf(cpf).isPresent()) {
-                return errorResponse("CPF já cadastrado", HttpStatus.BAD_REQUEST);
-            }
-
-            String email = dados.get("email").toString();
-            if (emailExiste(email)) {
-                return errorResponse("Email já cadastrado", HttpStatus.BAD_REQUEST);
-            }
-
-            Integer enderecoId = criarEndereco(dados);
-            Cliente cliente = criarCliente(dados, cpf, email, enderecoId);
-            Cliente clienteSalvo = clienteRepository.save(cliente);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Cliente cadastrado com sucesso");
-            response.put("cliente", clienteSalvo);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (Exception e) {
-            return errorResponse("Erro ao cadastrar cliente: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    private boolean validarCampos(Map<String, Object> dados) {
-        return dados.get("nomeCompleto") != null && dados.get("cpf") != null &&
-               dados.get("email") != null && dados.get("telefone") != null && dados.get("senha") != null;
-    }
-
-    private boolean emailExiste(String email) {
-        Query query = entityManager.createNativeQuery("SELECT COUNT(*) FROM cliente WHERE cli_email = ?");
-        query.setParameter(1, email);
-        return ((Number) query.getSingleResult()).longValue() > 0;
-    }
-
-    private Integer criarEndereco(Map<String, Object> dados) {
-        String sql = "INSERT INTO endereco (end_logradouro, end_numero, end_complemento, end_bairro, end_cidade, end_uf, end_cep) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        Query query = entityManager.createNativeQuery(sql);
-        query.setParameter(1, dados.getOrDefault("logradouro", "").toString());
-        query.setParameter(2, dados.getOrDefault("numero", "").toString());
-        query.setParameter(3, dados.getOrDefault("complemento", "").toString());
-        query.setParameter(4, dados.getOrDefault("bairro", "").toString());
-        query.setParameter(5, dados.getOrDefault("cidade", "").toString());
-        query.setParameter(6, dados.getOrDefault("uf", "").toString());
-        query.setParameter(7, dados.getOrDefault("cep", "").toString().replaceAll("[^0-9-]", ""));
-        query.executeUpdate();
-
-        Query idQuery = entityManager.createNativeQuery("SELECT LAST_INSERT_ID()");
-        return ((Number) idQuery.getSingleResult()).intValue();
-    }
-
-    private Cliente criarCliente(Map<String, Object> dados, String cpf, String email, Integer enderecoId) {
-        LocalDate dataNascimento = parseDataNascimento(dados.get("dataNascimento"));
-        
-        Cliente cliente = new Cliente();
-        cliente.setNomeCompleto(dados.get("nomeCompleto").toString());
-        cliente.setCpf(cpf);
-        cliente.setDataNascimento(dataNascimento);
-        cliente.setSenha(dados.get("senha").toString());
-        cliente.setEnderecoId(enderecoId);
-        cliente.setEmail(email);
-        cliente.setTelefone(dados.get("telefone").toString().replaceAll("[^0-9() -]", ""));
-        return cliente;
-    }
-
-    private LocalDate parseDataNascimento(Object data) {
-        if (data != null && !data.toString().isEmpty()) {
-            try {
-                return LocalDate.parse(data.toString());
-            } catch (Exception e) {
-                return LocalDate.of(1990, 1, 1);
-            }
-        }
-        return LocalDate.of(1990, 1, 1);
-    }
-
-    private ResponseEntity<Map<String, Object>> errorResponse(String message, HttpStatus status) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("message", message);
-        return ResponseEntity.status(status).body(response);
-    }
-}
+    @GetMapping("/view") // Define o endpoint GET /api/clientes/view.
+    public ResponseEntity<?> listarViaView() { // Método que devolverá a lista de registros da view ou um erro.
+        try { // Inicia o bloco que captura exceções.
+            List<ClienteView> clientes = clienteJdbcRepository.listarClientesView(); // Executa a consulta na view utilizando o repositório.
+            return ResponseEntity.ok(clientes); // Retorna HTTP 200 com a lista de registros.
+        } catch (DataAccessException e) { // Captura erros de acesso ao banco.
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of( // Retorna HTTP 500 em caso de falha.
+                "success", false, // Indica falha para o frontend.
+                "message", "Erro ao consultar view_dados_de_clientes: " + e.getMessage() // Descreve qual operação falhou.
+            )); // Fim da resposta de erro.
+        } // Fim do bloco try/catch.
+    } // Fim do método listarViaView.
+} // Fim da classe ClienteController.
 
 
 

@@ -1,57 +1,55 @@
-import { Routes } from '@angular/router';
-import { HomeComponent } from './components/home/home.component';
-import { LoginComponent } from './components/login/login.component';
-import { RegisterTypeComponent } from './components/register/register-type.component';
-import { RegisterClienteComponent } from './components/register/register-cliente.component';
-import { RegisterPrestadorComponent } from './components/register/register-prestador.component';
-import { AdminDashboardComponent } from './components/admin/admin-dashboard.component';
-import { adminGuard } from './guards/admin.guard';
+import { Routes } from '@angular/router'; // Tipo utilitário do Angular Router para declarar rotas.
+import { HomeComponent } from './components/home/home.component'; // Página inicial pública.
+import { LoginComponent } from './components/login/login.component'; // Tela de login unificada.
+import { RegisterTypeComponent } from './components/register/register-type.component'; // Tela que pergunta o tipo de cadastro.
+import { RegisterClienteComponent } from './components/register/register-cliente.component'; // Formulário de cadastro de clientes.
+import { RegisterPrestadorComponent } from './components/register/register-prestador.component'; // Formulário de cadastro de prestadores.
+import { AdminDashboardComponent } from './components/admin/admin-dashboard.component'; // Tela protegida do administrador.
+import { adminGuard } from './guards/admin.guard'; // Guard que libera o acesso ao dashboard somente com token válido.
+import { PrestadorAgendamentosComponent } from './components/prestador/prestador-agendamentos.component'; // Tela mock de agendamentos do prestador.
+import { PrestadorChatComponent } from './components/prestador/prestador-chat.component'; // Tela mock de chat prestador-cliente.
 
-/**
- * Configuração de rotas da aplicação
- * Define todas as rotas públicas e protegidas do sistema
- */
-export const routes: Routes = [
-  // Rota pública - Página inicial
+export const routes: Routes = [ // Lista completa de rotas da aplicação.
   {
-    path: '',
-    component: HomeComponent
+    path: '', // URL base (home).
+    component: HomeComponent // Renderiza a landing page.
   },
-  // Rota pública - Login unificado (admin, cliente, prestador)
   {
-    path: 'login',
-    component: LoginComponent
+    path: 'prestador/agendamentos', // Tela mock pública.
+    component: PrestadorAgendamentosComponent // Mostra cards de agendamento do prestador.
   },
-  // Rota pública - Seleção de tipo de cadastro
   {
-    path: 'register',
-    component: RegisterTypeComponent
+    path: 'prestador/chat', // Tela mock pública.
+    component: PrestadorChatComponent // Mostra o chat simplificado.
   },
-  // Rota pública - Cadastro de cliente
   {
-    path: 'register/cliente',
-    component: RegisterClienteComponent
+    path: 'login', // Rota de autenticação unificada.
+    component: LoginComponent // Renderiza o formulário de login.
   },
-  // Rota pública - Cadastro de prestador
   {
-    path: 'register/prestador',
-    component: RegisterPrestadorComponent
+    path: 'register', // Choose-your-path para cadastros.
+    component: RegisterTypeComponent // Permite escolher entre cliente ou prestador.
   },
-  // Redireciona /admin/login para /login (login unificado)
   {
-    path: 'admin/login',
-    redirectTo: '/login',
-    pathMatch: 'full'
+    path: 'register/cliente', // Cadastro de clientes.
+    component: RegisterClienteComponent // Formulário completo do cliente.
   },
-  // Rota protegida - Dashboard do administrador (requer autenticação)
   {
-    path: 'admin',
-    component: AdminDashboardComponent,
-    canActivate: [adminGuard]
+    path: 'register/prestador', // Cadastro de prestadores.
+    component: RegisterPrestadorComponent // Formulário completo do prestador.
   },
-  // Rota catch-all - Redireciona qualquer rota não encontrada para a home
   {
-    path: '**',
-    redirectTo: ''
+    path: 'admin/login', // Alias antigo.
+    redirectTo: '/login', // Redireciona para o login unificado.
+    pathMatch: 'full' // Garante que apenas /admin/login seja redirecionado.
+  },
+  {
+    path: 'admin', // Dashboard protegido.
+    component: AdminDashboardComponent, // Componente exibido.
+    canActivate: [adminGuard] // Guard que valida o token antes de liberar acesso.
+  },
+  {
+    path: '**', // Qualquer rota desconhecida.
+    redirectTo: '' // Redireciona para a home.
   }
 ];
