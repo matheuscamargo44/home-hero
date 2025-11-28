@@ -96,17 +96,50 @@ def imprimir_registros(registros):
 # ============================================================================
 
 def listar_categorias_servicos():
-    """Consulta a view que lista todas as categorias de serviços cadastradas."""
-    with closing(obter_conexao()) as conexao, closing(conexao.cursor(dictionary=True)) as cursor:
-        cursor.execute("SELECT * FROM view_lista_categorias ORDER BY cat_nome")
-        imprimir_registros(cursor.fetchall())
+    """
+    Lista todas as categorias de serviços usando a view view_lista_categorias.
+    """
+    # Abre a conexão com o banco de dados.
+    # closing(obter_conexao()) garante que a conexão será fechada
+    # automaticamente ao final do bloco with.
+    with closing(obter_conexao()) as conexao, \
+         closing(conexao.cursor(dictionary=True)) as cursor:
+        # Cria um cursor em modo "dictionary=True", ou seja, cada linha
+        # retornada vira um dicionário: {"cat_id": 1, "cat_nome": "Limpeza", ...}
+
+        # Executa um SELECT simples sobre a view que já está criada no MySQL.
+        # A view encapsula a lógica da consulta; aqui apenas lemos os dados.
+        cursor.execute(
+            "SELECT * FROM view_lista_categorias ORDER BY cat_nome"
+        )
+
+        # Recupera todas as linhas retornadas pela view.
+        registros = cursor.fetchall()
+
+        # Usa a função utilitária para imprimir os resultados no console.
+        imprimir_registros(registros)
 
 
 def listar_servicos_com_categorias():
-    """Consulta a view que lista serviços com suas respectivas categorias."""
-    with closing(obter_conexao()) as conexao, closing(conexao.cursor(dictionary=True)) as cursor:
-        cursor.execute("SELECT * FROM view_lista_servicos ORDER BY ser_nome")
-        imprimir_registros(cursor.fetchall())
+    """
+    Lista os serviços cadastrados junto com suas categorias,
+    usando a view view_lista_servicos.
+    """
+    # Abre conexão e cria cursor em modo dicionário,
+    # garantindo o fechamento automático com closing(...)
+    with closing(obter_conexao()) as conexao, \
+         closing(conexao.cursor(dictionary=True)) as cursor:
+
+        # Executa a consulta na view que já junta serviço + categoria.
+        cursor.execute(
+            "SELECT * FROM view_lista_servicos ORDER BY ser_nome"
+        )
+
+        # Busca todas as linhas retornadas pela view.
+        registros = cursor.fetchall()
+
+        # Imprime os registros de forma organizada no terminal.
+        imprimir_registros(registros)
 
 
 def listar_servicos_por_prestador():
@@ -192,42 +225,62 @@ def listar_historico_agendamentos():
 
 def inserir_cliente_procedure():
     """
-    Insere um novo cliente no banco de dados através da stored procedure.
+    Insere um novo cliente no banco de dados através da stored procedure inserir_cliente.
+    Toda a coleta de dados é feita via input no terminal.
     """
+    # Título da operação para o usuário
     print("=== Inserir Cliente ===")
+
+    # Leitura dos dados básicos do cliente
     nome = input("Nome: ").strip()
     cpf = input("CPF: ").strip()
     
-    # Validação de data com loop até entrada válida
+    # Loop para garantir que a data seja informada em formato válido
     while True:
         try:
-            nascimento = date.fromisoformat(input("Data de nascimento (YYYY-MM-DD): ").strip())
-            break
+            # Converte a string digitada em um objeto date (formato YYYY-MM-DD)
+            nascimento = date.fromisoformat(
+                input("Data de nascimento (YYYY-MM-DD): ").strip()
+            )
+            break  # sai do loop se a conversão der certo
         except ValueError:
+            # Caso o usuário digite em formato inválido
             print("Data inválida, use o formato YYYY-MM-DD.")
     
+    # Senha de acesso do cliente
     senha = input("Senha: ").strip()
     
-    # Dados do endereço
+    # Dados do endereço associados ao cliente
     print("\n--- Dados do Endereço ---")
-    end_logradouro = input("Logradouro: ").strip()
-    end_numero = input("Número: ").strip()
+    end_logradouro  = input("Logradouro: ").strip()
+    end_numero      = input("Número: ").strip()
     end_complemento = input("Complemento (opcional): ").strip()
-    end_bairro = input("Bairro: ").strip()
-    end_cidade = input("Cidade: ").strip()
-    end_uf = input("UF (2 letras): ").strip().upper()
-    end_cep = input("CEP: ").strip()
+    end_bairro      = input("Bairro: ").strip()
+    end_cidade      = input("Cidade: ").strip()
+    # UF em letras maiúsculas (ex.: SP, RJ)
+    end_uf          = input("UF (2 letras): ").strip().upper()
+    end_cep         = input("CEP: ").strip()
     
-    email = input("\nE-mail: ").strip()
+    # Dados de contato
+    email    = input("\nE-mail: ").strip()
     telefone = input("Telefone: ").strip()
 
-    with closing(obter_conexao()) as conexao, closing(conexao.cursor()) as cursor:
+    # Abre conexão e cursor; closing(...) garante fechamento automático
+    with closing(obter_conexao()) as conexao, \
+         closing(conexao.cursor()) as cursor:
+        # Chama a stored procedure 'inserir_cliente' passando todos
+        # os parâmetros na mesma ordem em que foram definidos no MySQL.
         cursor.callproc(
             "inserir_cliente",
-            [nome, cpf, nascimento, senha, 
-             end_logradouro, end_numero, end_complemento, end_bairro, end_cidade, end_uf, end_cep,
-             email, telefone],
+            [
+                nome, cpf, nascimento, senha, 
+                end_logradouro, end_numero, end_complemento, end_bairro,
+                end_cidade, end_uf, end_cep,
+                email, telefone
+            ],
         )
+
+        # Confirma a transação no banco
         conexao.commit()
         print("\nCliente inserido com sucesso.")
 
@@ -283,6 +336,7 @@ def buscar_dados_cliente():
     Busca e exibe os dados pessoais completos de um cliente pelo ID.
     Utiliza a stored procedure buscar_dados_pessoais_cliente.
     """
+    # Loop para garantir que o usuário informe um número inteiro válido
     while True:
         try:
             cli_id = int(input("Informe o ID do cliente: ").strip())
@@ -290,11 +344,18 @@ def buscar_dados_cliente():
         except ValueError:
             print("Valor inválido, tente novamente.")
     
-    with closing(obter_conexao()) as conexao, closing(conexao.cursor(dictionary=True)) as cursor:
+    # Abre conexão e cursor em modo dicionário para receber
+    # cada linha como um dict (chave = nome da coluna)
+    with closing(obter_conexao()) as conexao, \
+         closing(conexao.cursor(dictionary=True)) as cursor:
+        # Chamada da stored procedure no MySQL
         cursor.callproc("buscar_dados_pessoais_cliente", [cli_id])
-        # Processa todos os resultados retornados pela procedure
+
+        # A procedure pode retornar um ou mais conjuntos de resultados.
+        # Percorremos cada um deles e imprimimos com a função utilitária.
         for resultado in cursor.stored_results():
-            imprimir_registros(resultado.fetchall())
+            registros = resultado.fetchall()
+            imprimir_registros(registros)
 
 
 def listar_agendamentos_cliente_procedure():
