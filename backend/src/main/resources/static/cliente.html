@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeHero - Cadastro de Cliente</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <a href="/" class="logo-link">
+                    <span class="logo-text">HomeHero</span>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="#" class="login-link">Entrar</a>
+                <button class="btn-register">Cadastrar-se</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="form-wrapper">
+            <div class="form-card">
+                <div class="form-header">
+                    <h1>Cadastro de Cliente</h1>
+                </div>
+                <p class="form-subtitle">Preencha os dados para criar sua conta</p>
+                
+                <form id="formCliente" class="registration-form">
+                    <div class="form-section">
+                        <h2>Informações Pessoais</h2>
+                        <div class="form-group">
+                            <label for="cliNome">Nome Completo <span class="required">*</span></label>
+                            <input type="text" id="cliNome" name="nome" required placeholder="João Silva Santos">
+                        </div>
+                        <div class="form-group">
+                            <label for="cliCpf">CPF <span class="required">*</span></label>
+                            <input type="text" id="cliCpf" name="cpf" required placeholder="000.000.000-00" maxlength="14">
+                        </div>
+                        <div class="form-group">
+                            <label for="cliNascimento">Data de Nascimento</label>
+                            <input type="date" id="cliNascimento" name="nascimento" required>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Contato</h2>
+                        <div class="form-group">
+                            <label for="cliEmail">Email <span class="required">*</span></label>
+                            <input type="email" id="cliEmail" name="email" required placeholder="seu@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="cliTelefone">Telefone <span class="required">*</span></label>
+                            <input type="text" id="cliTelefone" name="telefone" required placeholder="(00) 00000-0000" maxlength="15">
+                        </div>
+                        <div class="form-group">
+                            <label for="cliSenha">Senha <span class="required">*</span></label>
+                            <input type="password" id="cliSenha" name="senha" required>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Endereço</h2>
+                        <div class="form-group">
+                            <label for="cliCep">CEP</label>
+                            <input type="text" id="cliCep" name="endCep" placeholder="00000-000" maxlength="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="cliLogradouro">Logradouro</label>
+                            <input type="text" id="cliLogradouro" name="endLogradouro" placeholder="Rua, Avenida, etc.">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="cliNumero">Número</label>
+                                <input type="text" id="cliNumero" name="endNumero" placeholder="123">
+                            </div>
+                            <div class="form-group">
+                                <label for="cliComplemento">Complemento</label>
+                                <input type="text" id="cliComplemento" name="endComplemento" placeholder="Apto, Bloco, etc.">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cliBairro">Bairro</label>
+                            <input type="text" id="cliBairro" name="endBairro">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="cliCidade">Cidade</label>
+                                <input type="text" id="cliCidade" name="endCidade">
+                            </div>
+                            <div class="form-group">
+                                <label for="cliUf">UF</label>
+                                <input type="text" id="cliUf" name="endUf" placeholder="SP" maxlength="2">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Cadastrar</button>
+                    <div id="cliMessage" class="message"></div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

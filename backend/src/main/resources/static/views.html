@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeHero - Views</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .views-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .buttons-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .btn-view {
+            flex: 1;
+            min-width: 200px;
+            background-color: #ff6b35;
+            color: #ffffff;
+            border: none;
+            padding: 1rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-view:hover {
+            background-color: #e55a2b;
+        }
+        .results-container {
+            margin-top: 2rem;
+        }
+        .result-card {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .result-card h3 {
+            margin: 0 0 1rem 0;
+            color: #333333;
+            font-size: 1.1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .result-item {
+            margin-bottom: 0.75rem;
+            padding: 0.5rem;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .result-item strong {
+            color: #ff6b35;
+            margin-right: 0.5rem;
+        }
+        .empty-message {
+            text-align: center;
+            color: #666666;
+            padding: 2rem;
+        }
+        .loading {
+            text-align: center;
+            color: #666666;
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <a href="/" class="logo-link">
+                    <span class="logo-text">HomeHero</span>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="/" class="login-link">Voltar</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="views-container">
+        <h1 style="margin-bottom: 1rem;">Demonstração de Views</h1>
+        <p style="color: #666666; margin-bottom: 2rem;">
+            Clique nos botões abaixo para consultar as views do banco de dados.
+        </p>
+
+        <div class="buttons-container">
+            <button class="btn-view" onclick="listarCategorias()">
+                Listar Categorias
+            </button>
+            <button class="btn-view" onclick="listarServicos()">
+                Listar Serviços
+            </button>
+        </div>
+
+        <div id="results" class="results-container"></div>
+    </main>
+
+    <script>
+        async function listarCategorias() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Carregando categorias...</div>';
+
+            try {
+                const response = await fetch('/api/views/categorias');
+                const result = await response.json();
+
+                if (result.success) {
+                    exibirResultados('Categorias de Serviços', result.data);
+                } else {
+                    resultsDiv.innerHTML = `<div class="result-card"><p style="color: #721c24;">${result.message}</p></div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="result-card"><p style="color: #721c24;">Erro ao conectar: ${error.message}</p></div>`;
+            }
+        }
+
+        async function listarServicos() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Carregando serviços...</div>';
+
+            try {
+                const response = await fetch('/api/views/servicos');
+                const result = await response.json();
+
+                if (result.success) {
+                    exibirResultados('Serviços Cadastrados', result.data);
+                } else {
+                    resultsDiv.innerHTML = `<div class="result-card"><p style="color: #721c24;">${result.message}</p></div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="result-card"><p style="color: #721c24;">Erro ao conectar: ${error.message}</p></div>`;
+            }
+        }
+
+        function exibirResultados(titulo, dados) {
+            const resultsDiv = document.getElementById('results');
+
+            if (!dados || dados.length === 0) {
+                resultsDiv.innerHTML = '<div class="empty-message">Nenhum registro encontrado.</div>';
+                return;
+            }
+
+            let html = `<div class="result-card">`;
+            html += `<h3>${titulo} (${dados.length} registro${dados.length > 1 ? 's' : ''})</h3>`;
+
+            dados.forEach((registro, index) => {
+                html += `<div class="result-item">`;
+                html += `<strong>Registro ${index + 1}:</strong>`;
+                
+                Object.keys(registro).forEach(key => {
+                    const value = registro[key];
+                    html += `<div style="margin-left: 1rem; margin-top: 0.25rem;">`;
+                    html += `<strong>${key}:</strong> ${value !== null ? value : 'N/A'}`;
+                    html += `</div>`;
+                });
+                
+                html += `</div>`;
+            });
+
+            html += `</div>`;
+            resultsDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
+

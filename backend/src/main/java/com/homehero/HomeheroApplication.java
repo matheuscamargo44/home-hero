@@ -1,14 +1,22 @@
-package com.homehero; // Pacote raiz da aplicação Spring Boot.
+package com.homehero;
 
-import org.springframework.boot.SpringApplication; // Classe utilitária para iniciar o app.
-import org.springframework.boot.autoconfigure.SpringBootApplication; // Habilita a configuração automática do Spring.
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication // Combina @Configuration, @EnableAutoConfiguration e @ComponentScan.
-public class HomeheroApplication { // Classe principal gerada pelo Spring Initializr.
-    public static void main(String[] args) { // Método inicial da JVM.
-        SpringApplication.run(HomeheroApplication.class, args); // Sobe o contexto Spring e o servidor embutido.
-    } // Fim do método main.
-} // Fim da classe HomeheroApplication.
+/**
+ * Classe principal da aplicação Spring Boot HomeHero.
+ * 
+ * O Spring Boot facilita o desenvolvimento Java através de:
+ * - Autoconfiguração: detecta automaticamente dependências e configura
+ * - Servidor embutido: roda como um simples arquivo JAR
+ * - Starter Packs: pacotes prontos para integração com bancos de dados
+ */
+@SpringBootApplication
+public class HomeheroApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(HomeheroApplication.class, args);
+    }
+}
 
 
 

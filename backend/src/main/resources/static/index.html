@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeHero</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .home-container {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+            text-align: center;
+        }
+        .home-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 1rem;
+        }
+        .home-subtitle {
+            font-size: 1.1rem;
+            color: #666666;
+            margin-bottom: 3rem;
+        }
+        .home-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .btn-home {
+            width: 100%;
+            padding: 1.25rem;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: block;
+            transition: all 0.2s;
+        }
+        .btn-home-primary {
+            background-color: #ff6b35;
+            color: #ffffff;
+            border: none;
+        }
+        .btn-home-primary:hover {
+            background-color: #e55a2b;
+        }
+        .btn-home-secondary {
+            background-color: #ffffff;
+            color: #ff6b35;
+            border: 2px solid #ff6b35;
+        }
+        .btn-home-secondary:hover {
+            background-color: #fff5f2;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <a href="/" class="logo-link">
+                    <span class="logo-text">HomeHero</span>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="#" class="login-link">Entrar</a>
+                <button class="btn-register">Cadastrar-se</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="home-container">
+        <h1 class="home-title">Bem-vindo ao HomeHero</h1>
+        <p class="home-subtitle">Escolha como deseja se cadastrar</p>
+        
+        <div class="home-buttons">
+            <a href="/cliente.html" class="btn-home btn-home-primary">
+                Cadastrar como Cliente
+            </a>
+            <a href="/prestador.html" class="btn-home btn-home-secondary">
+                Cadastrar como Prestador
+            </a>
+        </div>
+    </main>
+</body>
+</html>
